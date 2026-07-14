@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>הטריוויה של שמואל</title>
+<title>קרב מוחות</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Rubik:wght@500;700;900&display=swap" rel="stylesheet">
@@ -32,8 +32,19 @@
   .screen { position: relative; z-index: 1; display: none; min-height: 100vh; padding: 20px; flex-direction: column; align-items: center; }
   .screen.active { display: flex; }
 
-  h1 { font-size: 2.2em; font-weight: 900; color: #0f4d8f; margin: 6px 0 26px; text-align: center;
-       text-shadow: 0 0 12px rgba(255,255,255,.8), 1px 1px 0 rgba(255,255,255,.6); }
+  h1 {
+    font-size: 2.6em; font-weight: 900; margin: 6px 0 26px; text-align: center;
+    background: linear-gradient(90deg, #0f4d8f, #a239ea, #ff5757, #0f4d8f);
+    background-size: 300% auto;
+    -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent; color: transparent;
+    filter: drop-shadow(0 2px 3px rgba(0,0,0,.25));
+    animation: titleShine 6s linear infinite;
+    letter-spacing: .02em;
+  }
+  @keyframes titleShine {
+    0% { background-position: 0% center; }
+    100% { background-position: 300% center; }
+  }
   h2 { color: #0f4d8f; text-shadow: 1px 1px 0 rgba(255,255,255,.6); margin: 6px 0 16px; text-align:center; }
   p, span, div { color: inherit; }
 
@@ -215,7 +226,7 @@
 
 <!-- ===== תפריט ראשי ===== -->
 <div id="menu-screen" class="screen active">
-  <h1>🧠 הטריוויה של שמואל 🧠</h1>
+  <h1>🧠⚔️ קרב מוחות ⚔️🧠</h1>
   <button class="big-btn blue" onclick="goSolo()">🧍 שחקן יחיד</button>
   <button class="big-btn pink" onclick="goHostSetup()">📺 אני המנחה - יוצר משחק</button>
   <button class="big-btn purple" onclick="goJoinSetup()">🎮 אני משתתף - מצטרף למשחק</button>
@@ -244,8 +255,21 @@
   <h2>⚙️ הגדרות המשחק</h2>
   <p class="muted">כמה שאלות?</p>
   <div class="option-row" id="host-count-row"></div>
+  <div style="display:flex; align-items:center; justify-content:center; gap:6px; margin-bottom:14px;">
+    <input type="text" id="host-count-custom" inputmode="numeric" maxlength="2" placeholder="מספר אחר">
+    <button class="small-btn" onclick="applyCustomHostCount()">✓ עדכן</button>
+  </div>
   <p class="muted">כמה שניות לכל שאלה?</p>
   <div class="option-row" id="host-duration-row"></div>
+  <div style="display:flex; align-items:center; justify-content:center; gap:6px; margin-bottom:14px;">
+    <input type="text" id="host-duration-custom" inputmode="numeric" maxlength="3" placeholder="מספר שניות אחר">
+    <button class="small-btn" onclick="applyCustomHostDuration()">✓ עדכן</button>
+  </div>
+  <div class="card">
+    <p style="color:#555;">רוצים לבחור בעצמכם אילו שאלות? (אפשר לדלג)</p>
+    <div id="host-manual-slots-list"></div>
+    <button class="small-btn" id="host-manual-clear-btn" onclick="clearManualSelection()" style="display:none;">🗑️ נקה הכל - חזרה לאקראי</button>
+  </div>
   <button class="big-btn green" id="create-room-btn" onclick="createRoom()">🚀 צור משחק</button>
   <button class="small-btn" onclick="showScreen('menu-screen')">⬅️ תפריט ראשי</button>
 </div>
@@ -753,18 +777,41 @@ function showHostSetupScreen() {
   showScreen('host-setup-screen');
   renderHostCountOptions();
   renderHostDurationOptions();
+  renderManualSlots(hostSettings.count, 'host-manual-slots-list', 'host-manual-clear-btn');
 }
 
 function renderHostCountOptions() {
   const row = document.getElementById('host-count-row');
   row.innerHTML = '';
-  [5, 8, 10, 15].forEach(n => {
+  [1, 2, 3, 4, 5, 6, 7, 8, 9].forEach(n => {
     const b = document.createElement('button');
     b.className = 'option-btn' + (n === hostSettings.count ? ' selected' : '');
     b.textContent = n;
-    b.onclick = () => { hostSettings.count = n; renderHostCountOptions(); };
+    b.onclick = () => {
+      hostSettings.count = n;
+      renderHostCountOptions();
+      renderManualSlots(hostSettings.count, 'host-manual-slots-list', 'host-manual-clear-btn');
+    };
     row.appendChild(b);
   });
+}
+
+function applyCustomHostCount() {
+  const val = parseInt(document.getElementById('host-count-custom').value, 10);
+  const bankSize = getCombinedBank().length;
+  if (!val || val <= 0 || val > bankSize) { alert('תכניסו מספר בין 1 ל-' + bankSize); return; }
+  hostSettings.count = val;
+  renderHostCountOptions();
+  renderManualSlots(hostSettings.count, 'host-manual-slots-list', 'host-manual-clear-btn');
+  document.getElementById('host-count-custom').value = '';
+}
+
+function applyCustomHostDuration() {
+  const val = parseInt(document.getElementById('host-duration-custom').value, 10);
+  if (!val || val <= 0 || val > 600) { alert('תכניסו מספר שניות בין 1 ל-600'); return; }
+  hostSettings.duration = val;
+  renderHostDurationOptions();
+  document.getElementById('host-duration-custom').value = '';
 }
 
 function renderHostDurationOptions() {
@@ -1297,7 +1344,8 @@ function setManualSelection(arr) {
 }
 function clearManualSelection() {
   setManualSelection([]);
-  renderManualSlots();
+  renderManualSlots(getSoloQuestionCount(), 'manual-slots-list', 'manual-clear-btn');
+  renderManualSlots(hostSettings.count, 'host-manual-slots-list', 'host-manual-clear-btn');
 }
 
 function getSoloHistory() {
@@ -1513,7 +1561,7 @@ function renderAdminTab() {
         <button class="small-btn" id="manual-clear-btn" onclick="clearManualSelection()" style="display:none;">🗑️ נקה הכל - חזרה לאקראי</button>
       </div>
     `;
-    renderManualSlots();
+    renderManualSlots(getSoloQuestionCount(), 'manual-slots-list', 'manual-clear-btn');
   } else if (adminTab === 'time') {
     el.innerHTML = `
       <div class="card center-text">
@@ -1682,12 +1730,14 @@ function renderSourceToggle() {
 
 let openSlotIndex = -1;
 
-function renderManualSlots() {
-  const wrap = document.getElementById('manual-slots-list');
-  const clearBtn = document.getElementById('manual-clear-btn');
+function renderManualSlots(count, wrapId, clearBtnId) {
+  count = count || getSoloQuestionCount();
+  wrapId = wrapId || 'manual-slots-list';
+  clearBtnId = clearBtnId || 'manual-clear-btn';
+  const wrap = document.getElementById(wrapId);
+  const clearBtn = document.getElementById(clearBtnId);
   if (!wrap) return;
   const bank = getCombinedBank();
-  const count = getSoloQuestionCount();
   let sel = getManualSelection();
   if (sel.length !== count) {
     const fixed = [];
@@ -1704,7 +1754,7 @@ function renderManualSlots() {
     btn.className = 'option-btn';
     btn.style.width = '100%';
     btn.textContent = 'שאלה מספר ' + (idx + 1) + (text ? ': ' + text : ' (לא נבחרה עדיין)');
-    btn.onclick = () => { openSlotIndex = (openSlotIndex === idx) ? -1 : idx; renderManualSlots(); };
+    btn.onclick = () => { openSlotIndex = (openSlotIndex === idx) ? -1 : idx; renderManualSlots(count, wrapId, clearBtnId); };
     slotBox.appendChild(btn);
 
     if (openSlotIndex === idx) {
@@ -1719,7 +1769,7 @@ function renderManualSlots() {
           sel[idx] = q.q;
           setManualSelection(sel);
           openSlotIndex = -1;
-          renderManualSlots();
+          renderManualSlots(count, wrapId, clearBtnId);
         };
         picker.appendChild(opt);
       });
