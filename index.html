@@ -466,7 +466,7 @@ function playTone(freq, startOffset, duration, type, peakGain) {
 const SFX_ENABLED_KEY = 'trivia_sfx_enabled';
 const MUSIC_ENABLED_KEY = 'trivia_music_enabled';
 function isSfxEnabled() { return localStorage.getItem(SFX_ENABLED_KEY) !== 'false'; }
-function isMusicEnabled() { return localStorage.getItem(MUSIC_ENABLED_KEY) !== 'false'; }
+function isMusicEnabled() { return localStorage.getItem(MUSIC_ENABLED_KEY) === 'true'; }
 function setSfxEnabled(v) { localStorage.setItem(SFX_ENABLED_KEY, v ? 'true' : 'false'); }
 function setMusicEnabled(v) { localStorage.setItem(MUSIC_ENABLED_KEY, v ? 'true' : 'false'); }
 
@@ -613,6 +613,14 @@ function showJoinFlow(code, roomData) {
   const h = document.createElement('h2');
   h.textContent = allowedNames.length ? '🎮 בחרו מי אתם' : '🎮 מה השם שלך?';
   content.appendChild(h);
+
+  if (roomData.scheduledTime) {
+    const timeBanner = document.createElement('div');
+    timeBanner.className = 'feedback-banner';
+    timeBanner.style.fontSize = '1.2em';
+    timeBanner.textContent = '🕐 שעת פתיחה משוערת: ' + roomData.scheduledTime;
+    content.appendChild(timeBanner);
+  }
 
   const card = document.createElement('div');
   card.className = 'card center-text';
@@ -991,6 +999,28 @@ function renderHost() {
   else if (phase === 'question') renderHostQuestion(content);
   else if (phase === 'reveal') renderHostReveal(content);
   else if (phase === 'finished') renderHostFinal(content);
+  else if (phase === 'stopped') renderHostStopped(content);
+}
+
+function hostStopGame() {
+  if (!confirm('לעצור את המשחק לכולם?')) return;
+  clearTimeout(hostQuestionTimer);
+  clearInterval(hostCountdownInterval);
+  db.ref('rooms/' + hostRoomCode).update({ phase: 'stopped' });
+}
+
+function renderHostStopped(content) {
+  const players = hostRoomState.players || {};
+  const sorted = Object.values(players).sort((a, b) => (b.score || 0) - (a.score || 0));
+  content.innerHTML = `
+    <h2>🛑 עצרת את המשחק</h2>
+    <div class="card">
+      <div style="font-weight:700; margin-bottom:8px;">הניקוד עד כה:</div>
+      ${sorted.map((p, i) => `<div>${i + 1}. ${p.name} - ${p.score || 0}</div>`).join('') || '<div class="muted">אין תוצאות</div>'}
+    </div>
+    <button class="big-btn green" onclick="leaveHostRoom(); goHostSetup();">🔁 משחק חדש</button>
+    <button class="small-btn" onclick="leaveHostRoom()">⬅️ תפריט ראשי</button>
+  `;
 }
 
 function renderHostLobby(content) {
@@ -1100,7 +1130,7 @@ function renderHostQuestion(content) {
       <div id="host-answer-count" style="font-weight:700;">0 ענו עד עכשיו</div>
     </div>
     <button class="small-btn" onclick="hostEndQuestion(${idx})">⏭️ סיימו לענות - לתוצאה</button>
-    <button class="small-btn" onclick="leaveHostRoom()">⬅️ תפריט ראשי</button>
+    <button class="small-btn" onclick="hostStopGame()">🛑 עצור משחק</button>
   `;
   db.ref('rooms/' + hostRoomCode + '/answers/' + idx).on('value', snap => {
     const answers = snap.val() || {};
@@ -1142,7 +1172,7 @@ function renderHostReveal(content) {
     <button class="big-btn green" onclick="hostAdvanceToQuestion(${idx + 1})">
       ${idx + 1 >= hostRoomState.totalQuestions ? '🏁 לתוצאות הסופיות' : '➡️ לשאלה הבאה'}
     </button>
-    <button class="small-btn" onclick="leaveHostRoom()">⬅️ תפריט ראשי</button>
+    <button class="small-btn" onclick="hostStopGame()">🛑 עצור משחק</button>
   `;
 }
 
@@ -1262,17 +1292,26 @@ function renderPlayer() {
   else if (phase === 'question') renderPlayerQuestion(content);
   else if (phase === 'reveal') renderPlayerReveal(content);
   else if (phase === 'finished') renderPlayerFinal(content);
+  else if (phase === 'stopped') renderPlayerStopped(content);
+}
+
+function renderPlayerStopped(content) {
+  content.innerHTML = `
+    <h2>🛑 המנחה עצר את המשחק</h2>
+    <div class="card center-text">תודה על המשחק!</div>
+    <button class="small-btn" onclick="leavePlayerRoom()">⬅️ תפריט ראשי</button>
+  `;
 }
 
 function renderPlayerLobby(content) {
   const players = playerRoomState.players || {};
   content.innerHTML = `
     <h2>🎮 את/ה בפנים!</h2>
+    ${playerRoomState.scheduledTime ? `<div class="feedback-banner" style="font-size:1.2em;">🕐 שעת פתיחה משוערת: ${playerRoomState.scheduledTime}</div>` : ''}
     <div class="card center-text">
       <div>מחכים שהמנחה יתחיל את המשחק...</div>
       <div class="muted" style="margin-top:10px;">בחדר עכשיו: ${Object.keys(players).length} שחקנים</div>
     </div>
-    <button class="small-btn" onclick="leavePlayerRoom()">⬅️ תפריט ראשי</button>
   `;
 }
 
@@ -1286,7 +1325,6 @@ function renderPlayerQuestion(content) {
         <div style="font-size:1.4em;">✅ התשובה שלך נשלחה!</div>
         <div class="muted">מחכים לשאר השחקנים...</div>
       </div>
-      <button class="small-btn" onclick="leavePlayerRoom()">⬅️ תפריט ראשי</button>
     `;
     return;
   }
@@ -1296,7 +1334,6 @@ function renderPlayerQuestion(content) {
     <div class="center-text" id="player-timer-text" style="color:#0f4d8f; font-weight:700; margin-bottom:10px;"></div>
     <div class="question-box">${q.text}</div>
     <div class="choices-grid" id="player-choices" style="grid-template-columns: repeat(${gridColsFor(q.choices.length)}, 1fr);"></div>
-    <button class="small-btn" onclick="leavePlayerRoom()" style="margin-top:18px;">⬅️ תפריט ראשי</button>
   `;
   const grid = document.getElementById('player-choices');
   q.choices.forEach((c, i) => {
@@ -1357,7 +1394,6 @@ function renderPlayerReveal(content) {
         <div class="muted">מקום ${myRank || '-'} מתוך ${sorted.length}</div>
       </div>
       <div class="muted center-text">מחכים לשאלה הבאה...</div>
-      <button class="small-btn" onclick="leavePlayerRoom()">⬅️ תפריט ראשי</button>
     `;
   });
 }
