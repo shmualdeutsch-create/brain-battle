@@ -69,6 +69,7 @@
   .big-btn.blue   { background: #4dccc6; box-shadow: 0 6px 0 #2f8f8a, 0 8px 20px rgba(0,0,0,.25); }
   .big-btn.pink   { background: #ff8fab; box-shadow: 0 6px 0 #d1466f, 0 8px 20px rgba(0,0,0,.25); }
   .big-btn.green  { background: #8ce99a; box-shadow: 0 6px 0 #4f9e5c, 0 8px 20px rgba(0,0,0,.25); }
+  .big-btn.orange { background: #ffb84d; box-shadow: 0 6px 0 #d18f1f, 0 8px 20px rgba(0,0,0,.25); }
   .big-btn.purple { background: #c4a2ff; box-shadow: 0 6px 0 #7a4fd1, 0 8px 20px rgba(0,0,0,.25); }
   .big-btn:disabled { opacity: .45; cursor: not-allowed; box-shadow: none; transform: none; }
 
@@ -108,6 +109,17 @@
     max-width: 320px;
     margin: 10px 0;
   }
+  textarea, input[type=time] {
+    padding: 12px 14px;
+    font-size: 1.1em;
+    font-family: inherit;
+    border-radius: 14px;
+    border: 2px solid #ccc;
+    width: 100%;
+    max-width: 320px;
+    margin: 8px 0;
+  }
+  textarea { text-align: right; resize: vertical; min-height: 90px; }
   input[type=text]:focus { outline: none; border-color: #a239ea; }
 
   .option-row { display: flex; flex-wrap: wrap; justify-content: center; margin-bottom: 20px; }
@@ -229,6 +241,7 @@
   <h1>🧠⚔️ קרב מוחות ⚔️🧠</h1>
   <button class="big-btn blue" onclick="goSolo()">🧍 שחקן יחיד</button>
   <button class="big-btn pink" onclick="goHostSetup()">📺 אני המנחה - יוצר משחק</button>
+  <button class="big-btn orange" onclick="goPlannedHostSetup()">👥 הכנת קבוצה מראש</button>
   <button class="big-btn purple" onclick="goJoinSetup()">🎮 אני משתתף - מצטרף למשחק</button>
   <button class="small-btn" onclick="goAdmin()" style="margin-top:26px;">⚙️ ניהול - הוספת שאלות וניקודים</button>
 </div>
@@ -252,7 +265,7 @@
 
 <!-- ===== הגדרת משחק (מנחה) ===== -->
 <div id="host-setup-screen" class="screen">
-  <h2>⚙️ הגדרות המשחק</h2>
+  <h2 id="host-setup-heading">⚙️ הגדרות המשחק</h2>
   <p class="muted">כמה שאלות?</p>
   <div class="option-row" id="host-count-row"></div>
   <div style="display:flex; align-items:center; justify-content:center; gap:6px; margin-bottom:14px;">
@@ -270,8 +283,21 @@
     <div id="host-manual-slots-list"></div>
     <button class="small-btn" id="host-manual-clear-btn" onclick="clearManualSelection()" style="display:none;">🗑️ נקה הכל - חזרה לאקראי</button>
   </div>
+  <div class="card center-text" id="host-planned-card" style="display:none;">
+    <p style="color:#555;">רשימת שמות המשתתפים (רשות) - כל שם בשורה נפרדת:</p>
+    <textarea id="host-names-list" placeholder="לדוגמה:&#10;דני&#10;יוסי&#10;רותם"></textarea>
+    <p style="color:#999; font-size:.85em;">אם תמלאו רשימה - מי שיכנס עם הקישור יבחר את השם שלו מהרשימה, בלי להקליד.</p>
+    <p style="color:#555; margin-top:12px;">שעת פתיחה משוערת (רשות):</p>
+    <input type="time" id="host-scheduled-time">
+    <p style="color:#999; font-size:.85em;">זה רק כדי להראות למשתתפים - אתם עדיין תלחצו "התחילו" בעצמכם כשתהיו מוכנים.</p>
+  </div>
   <button class="big-btn green" id="create-room-btn" onclick="createRoom()">🚀 צור משחק</button>
   <button class="small-btn" onclick="showScreen('menu-screen')">⬅️ תפריט ראשי</button>
+</div>
+
+<!-- ===== הצטרפות דרך קישור (בחירת שם) ===== -->
+<div id="name-picker-screen" class="screen">
+  <div id="name-picker-content"></div>
 </div>
 
 <!-- ===== מסך מנחה (לובי / שאלה / תוצאה / סיום) ===== -->
@@ -565,6 +591,78 @@ try {
   firebaseReady = false;
 }
 
+/* ===================== הצטרפות דרך קישור ===================== */
+function checkJoinLinkOnLoad() {
+  const params = new URLSearchParams(location.search);
+  const code = params.get('room');
+  if (!code || !firebaseReady) return;
+  db.ref('rooms/' + code).once('value').then(snap => {
+    if (!snap.exists()) return;
+    showJoinFlow(code, snap.val());
+  }).catch(() => {});
+}
+
+function showJoinFlow(code, roomData) {
+  const content = document.getElementById('name-picker-content');
+  const allowedNames = roomData.allowedNames || [];
+  const players = roomData.players || {};
+  const takenNames = Object.values(players).map(p => p.name);
+  showScreen('name-picker-screen');
+  content.innerHTML = '';
+
+  const h = document.createElement('h2');
+  h.textContent = allowedNames.length ? '🎮 בחרו מי אתם' : '🎮 מה השם שלך?';
+  content.appendChild(h);
+
+  const card = document.createElement('div');
+  card.className = 'card center-text';
+
+  if (allowedNames.length) {
+    allowedNames.forEach(n => {
+      const taken = takenNames.includes(n);
+      const b = document.createElement('button');
+      b.className = 'option-btn';
+      b.style.cssText = 'width:100%; margin:6px 0;';
+      b.textContent = n + (taken ? ' (נתפס)' : '');
+      b.disabled = taken;
+      b.onclick = () => pickNameAndJoin(code, n);
+      card.appendChild(b);
+    });
+    content.appendChild(card);
+  } else {
+    const input = document.createElement('input');
+    input.type = 'text';
+    input.id = 'quick-join-name-input';
+    input.maxLength = 14;
+    input.placeholder = 'השם שלי';
+    card.appendChild(input);
+    content.appendChild(card);
+
+    const joinBtn = document.createElement('button');
+    joinBtn.className = 'big-btn purple';
+    joinBtn.textContent = '✅ הצטרפו!';
+    joinBtn.onclick = () => pickNameAndJoin(code, input.value.trim() || 'שחקן');
+    content.appendChild(joinBtn);
+  }
+
+  const backBtn = document.createElement('button');
+  backBtn.className = 'small-btn';
+  backBtn.textContent = '⬅️ תפריט ראשי';
+  backBtn.onclick = () => showScreen('menu-screen');
+  content.appendChild(backBtn);
+}
+
+function pickNameAndJoin(code, name) {
+  playerRoomCode = code;
+  playerId = getPlayerId();
+  playerAnsweredIndex = -1;
+  const ref = db.ref('rooms/' + code + '/players/' + playerId);
+  ref.set({ name, score: 0, joinedAt: firebase.database.ServerValue.TIMESTAMP });
+  ref.onDisconnect().remove();
+  showScreen('player-screen');
+  listenPlayerRoom();
+}
+
 /* ===================== שחקן יחיד ===================== */
 let soloQuestions = [];
 let soloIndex = 0;
@@ -767,14 +865,26 @@ let hostQuestions = [];
 let hostRoomState = null;
 let hostQuestionTimer = null;
 
+let hostSetupMode = 'quick';
+
 function goHostSetup() {
   if (!firebaseReady) { showScreen('not-configured-screen'); return; }
   pinLockTarget = 'host';
   showPinLockScreen();
 }
 
+function goPlannedHostSetup() {
+  if (!firebaseReady) { showScreen('not-configured-screen'); return; }
+  pinLockTarget = 'plannedHost';
+  showPinLockScreen();
+}
+
 function showHostSetupScreen() {
   showScreen('host-setup-screen');
+  const heading = document.getElementById('host-setup-heading');
+  if (heading) heading.textContent = hostSetupMode === 'planned' ? '👥 הכנת קבוצה מראש' : '⚙️ הגדרות המשחק';
+  const plannedCard = document.getElementById('host-planned-card');
+  if (plannedCard) plannedCard.style.display = hostSetupMode === 'planned' ? 'block' : 'none';
   renderHostCountOptions();
   renderHostDurationOptions();
   renderManualSlots(hostSettings.count, 'host-manual-slots-list', 'host-manual-clear-btn');
@@ -783,7 +893,7 @@ function showHostSetupScreen() {
 function renderHostCountOptions() {
   const row = document.getElementById('host-count-row');
   row.innerHTML = '';
-  [1, 2, 3, 4, 5, 6, 7, 8, 9].forEach(n => {
+  [5, 10, 15, 20].forEach(n => {
     const b = document.createElement('button');
     b.className = 'option-btn' + (n === hostSettings.count ? ' selected' : '');
     b.textContent = n;
@@ -837,7 +947,11 @@ function createRoom() {
   const btn = document.getElementById('create-room-btn');
   if (btn) { btn.disabled = true; btn.textContent = '⏳ יוצר משחק...'; }
 
-  const writePromise = db.ref('rooms/' + hostRoomCode).set({
+  const namesRaw = hostSetupMode === 'planned' ? document.getElementById('host-names-list').value : '';
+  const allowedNames = namesRaw.split('\n').map(s => s.trim()).filter(Boolean);
+  const scheduledTime = hostSetupMode === 'planned' ? document.getElementById('host-scheduled-time').value : '';
+
+  const roomData = {
     hostId: hostPlayerId,
     createdAt: firebase.database.ServerValue.TIMESTAMP,
     phase: 'lobby',
@@ -845,7 +959,11 @@ function createRoom() {
     questionIndex: -1,
     duration: hostSettings.duration,
     players: {}
-  });
+  };
+  if (allowedNames.length) roomData.allowedNames = allowedNames;
+  if (scheduledTime) roomData.scheduledTime = scheduledTime;
+
+  const writePromise = db.ref('rooms/' + hostRoomCode).set(roomData);
   const timeoutPromise = new Promise((_, reject) => {
     setTimeout(() => reject(new Error('ההתחברות לוקחת יותר מדי זמן')), 10000);
   });
@@ -878,12 +996,19 @@ function renderHost() {
 function renderHostLobby(content) {
   const players = hostRoomState.players || {};
   const names = Object.values(players).map(p => p.name);
+  const joinLink = location.origin + location.pathname + '?room=' + hostRoomCode;
   content.innerHTML = `
     <h2>📺 חדר המשחק שלך</h2>
     <div class="center-text">
       <div class="muted">תנו לחברים את הקוד הזה:</div>
       <div class="room-code">${hostRoomCode}</div>
     </div>
+    <div class="card center-text">
+      <div class="muted" style="margin-bottom:6px;">או שלחו את הקישור הזה (הכי קל - בלי להקליד כלום):</div>
+      <input type="text" readonly value="${joinLink}" id="host-join-link" onclick="this.select();">
+      <br><button class="small-btn" onclick="copyJoinLink()">📋 העתק קישור</button>
+    </div>
+    ${hostRoomState.scheduledTime ? `<div class="muted center-text">🕐 שעת פתיחה משוערת: ${hostRoomState.scheduledTime}</div>` : ''}
     <div class="card">
       <div style="font-weight:700; margin-bottom:8px;">שחקנים שהצטרפו (${names.length}):</div>
       <div id="host-lobby-names" class="muted">${names.length ? names.join(' , ') : 'עדיין אף אחד...'}</div>
@@ -891,6 +1016,18 @@ function renderHostLobby(content) {
     <button class="big-btn green" ${names.length ? '' : 'disabled'} onclick="hostStartGame()">🚀 התחילו את המשחק!</button>
     <button class="small-btn" onclick="leaveHostRoom()">⬅️ תפריט ראשי</button>
   `;
+}
+
+function copyJoinLink() {
+  const input = document.getElementById('host-join-link');
+  if (!input) return;
+  input.select();
+  input.setSelectionRange(0, 99999);
+  if (navigator.clipboard && navigator.clipboard.writeText) {
+    navigator.clipboard.writeText(input.value).catch(() => {});
+  } else {
+    try { document.execCommand('copy'); } catch (e) {}
+  }
 }
 
 function hostStartGame() {
@@ -953,6 +1090,8 @@ function renderHostQuestion(content) {
   const idx = hostRoomState.questionIndex;
   content.innerHTML = `
     <div class="progress-label center-text">שאלה ${idx + 1} מתוך ${hostRoomState.totalQuestions}</div>
+    <div class="timer-bar-outer"><div class="timer-bar-inner" id="host-timer-bar"></div></div>
+    <div class="center-text" id="host-timer-text" style="color:#0f4d8f; font-weight:700; margin-bottom:10px;"></div>
     <div class="question-box">${q.text}</div>
     <div class="choices-grid" style="grid-template-columns: repeat(${gridColsFor(q.choices.length)}, 1fr);">
       ${q.choices.map((c, i) => `<div class="choice-btn choice-${i}" style="cursor:default;">${c}</div>`).join('')}
@@ -968,6 +1107,22 @@ function renderHostQuestion(content) {
     const el = document.getElementById('host-answer-count');
     if (el) el.textContent = Object.keys(answers).length + ' ענו עד עכשיו';
   });
+  startHostCountdown(q.startAt, hostRoomState.duration);
+}
+
+let hostCountdownInterval = null;
+function startHostCountdown(startAt, duration) {
+  clearInterval(hostCountdownInterval);
+  function tick() {
+    const remaining = Math.max(0, duration - (Date.now() - startAt) / 1000);
+    const bar = document.getElementById('host-timer-bar');
+    const text = document.getElementById('host-timer-text');
+    if (bar) bar.style.width = (remaining / duration * 100) + '%';
+    if (text) text.textContent = '⏱️ ' + Math.ceil(remaining) + ' שניות';
+    if (remaining <= 0) clearInterval(hostCountdownInterval);
+  }
+  tick();
+  hostCountdownInterval = setInterval(tick, 200);
 }
 
 function renderHostReveal(content) {
@@ -1045,6 +1200,7 @@ function renderHostTimeTable() {
 
 function leaveHostRoom() {
   clearTimeout(hostQuestionTimer);
+  clearInterval(hostCountdownInterval);
   if (hostRoomCode) db.ref('rooms/' + hostRoomCode).off();
   showScreen('menu-screen');
 }
@@ -1136,6 +1292,8 @@ function renderPlayerQuestion(content) {
   }
   content.innerHTML = `
     <div class="progress-label center-text">שאלה ${idx + 1} מתוך ${playerRoomState.totalQuestions}</div>
+    <div class="timer-bar-outer"><div class="timer-bar-inner" id="player-timer-bar"></div></div>
+    <div class="center-text" id="player-timer-text" style="color:#0f4d8f; font-weight:700; margin-bottom:10px;"></div>
     <div class="question-box">${q.text}</div>
     <div class="choices-grid" id="player-choices" style="grid-template-columns: repeat(${gridColsFor(q.choices.length)}, 1fr);"></div>
     <button class="small-btn" onclick="leavePlayerRoom()" style="margin-top:18px;">⬅️ תפריט ראשי</button>
@@ -1148,6 +1306,22 @@ function renderPlayerQuestion(content) {
     b.onclick = () => submitAnswer(idx, i);
     grid.appendChild(b);
   });
+  startPlayerCountdown(q.startAt, playerRoomState.duration);
+}
+
+let playerCountdownInterval = null;
+function startPlayerCountdown(startAt, duration) {
+  clearInterval(playerCountdownInterval);
+  function tick() {
+    const remaining = Math.max(0, duration - (Date.now() - startAt) / 1000);
+    const bar = document.getElementById('player-timer-bar');
+    const text = document.getElementById('player-timer-text');
+    if (bar) bar.style.width = (remaining / duration * 100) + '%';
+    if (text) text.textContent = '⏱️ ' + Math.ceil(remaining) + ' שניות';
+    if (remaining <= 0) clearInterval(playerCountdownInterval);
+  }
+  tick();
+  playerCountdownInterval = setInterval(tick, 200);
 }
 
 function submitAnswer(idx, choiceIndex) {
@@ -1229,6 +1403,7 @@ function renderPlayerTimeTable() {
 }
 
 function leavePlayerRoom() {
+  clearInterval(playerCountdownInterval);
   if (playerRoomCode) {
     db.ref('rooms/' + playerRoomCode).off();
     if (playerId) db.ref('rooms/' + playerRoomCode + '/players/' + playerId).remove();
@@ -1412,6 +1587,10 @@ function checkAdminPin() {
 
 function afterPinSuccess() {
   if (pinLockTarget === 'host') {
+    hostSetupMode = 'quick';
+    showHostSetupScreen();
+  } else if (pinLockTarget === 'plannedHost') {
+    hostSetupMode = 'planned';
     showHostSetupScreen();
   } else {
     openAdminPanel();
@@ -1837,6 +2016,8 @@ function setCustomTimeLimit() {
   msg.textContent = '✅ נשמר! ' + val + ' שניות לכל שאלה';
   document.getElementById('custom-time-input').value = '';
 }
+
+checkJoinLinkOnLoad();
 </script>
 </body>
 </html>
