@@ -439,7 +439,7 @@ const QUESTION_BANK_HAREDI = [
   { q: "כמה שבטים היו לעם ישראל?", choices: ["10", "12", "13", "14"], correct: 1 },
   { q: "מה שמה של אמו של משה רבנו?", choices: ["מרים", "יוכבד", "צפורה", "שרה"], correct: 1 },
   { q: "מי היה מייסד תנועת החסידות?", choices: ["הבעל שם טוב", "הרמב''ם", "רש''י", "הגר''א"], correct: 0 },
-  { q: "מה השם הנוסף של חמשת חומשי תורה?", choices: ["תנ''ך", "תורה", "משנה", "גמרא"], correct: 1 },
+  { q: "איך נקראים חמשת חומשי תורה יחד, במילה אחת?", choices: ["חומש", "משנה", "תלמוד", "מדרש"], correct: 0 },
   { q: "כמה פעמים ביום מתפללים תפילת עמידה בחול?", choices: ["1", "2", "3", "4"], correct: 2 },
   { q: "מהו שמו של החג שבו נותנים משלוח מנות?", choices: ["פורים", "חנוכה", "שבועות", "ל''ג בעומר"], correct: 0 },
   { q: "באיזה יום בשבוע חל שבת?", choices: ["ביום שישי בערב עד שבת בערב", "רק ביום ראשון", "רק בבוקר יום שישי", "ביום חמישי"], correct: 0 },
@@ -1672,7 +1672,9 @@ function getCombinedBank() {
   const disabledGeo = getDisabledGeoIndices();
   const activeGeo = QUESTION_BANK_GEO_ISRAEL.filter((_, i) => !disabledGeo.includes(i));
   const source = getQuestionSourceMode();
-  if (source === 'builtin') return activeBuiltin.concat(activeHaredi).concat(activeGeo);
+  if (source === 'builtin') return activeBuiltin;
+  if (source === 'haredi') return activeHaredi;
+  if (source === 'geo') return activeGeo;
   if (source === 'custom') return getCustomQuestions();
   return activeBuiltin.concat(activeHaredi).concat(activeGeo).concat(getCustomQuestions());
 }
@@ -1930,8 +1932,10 @@ function renderAdminTab() {
         <p style="color:#555;">מאיפה יגיעו השאלות במשחק?</p>
         <div class="option-row" id="source-toggle-row"></div>
         <p style="color:#999; font-size:.85em; margin-top:10px;">
-          🔀 הכל - גם שאלות המערכת וגם השאלות שהוספת.<br>
-          📚 רק שאלות המערכת - בלי השאלות שהוספת.<br>
+          🔀 הכל - כל השאלות מכל הסוגים.<br>
+          📚 רק שאלות כלליות - ידע כללי, בלי חרדיות/גיאוגרפיה/שלי.<br>
+          📖 רק שאלות חרדיות.<br>
+          🗺️ רק גיאוגרפיה של ישראל.<br>
           📋 רק השאלות שלי - רק מה שהוספת בעצמך.
         </p>
       </div>
@@ -2122,7 +2126,7 @@ function renderSourceToggle() {
   if (!row) return;
   const mode = getQuestionSourceMode();
   row.innerHTML = '';
-  [['all', '🔀 הכל'], ['builtin', '📚 רק שאלות המערכת'], ['custom', '📋 רק השאלות שלי']].forEach(([val, label]) => {
+  [['all', '🔀 הכל'], ['builtin', '📚 רק שאלות כלליות'], ['haredi', '📖 רק שאלות חרדיות'], ['geo', '🗺️ רק גיאוגרפיה'], ['custom', '📋 רק השאלות שלי']].forEach(([val, label]) => {
     const b = document.createElement('button');
     b.className = 'option-btn' + (mode === val ? ' selected' : '');
     b.textContent = label;
