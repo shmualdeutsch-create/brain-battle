@@ -419,6 +419,57 @@ const QUESTION_BANK = [
   { q: "כמה זה 9 כפול 9?", choices: ["72", "81", "90", "99"], correct: 1 },
 ];
 
+// בנק שאלות בסגנון חרדי - תורה, חגים, הלכה וגדולי ישראל
+const QUESTION_BANK_HAREDI = [
+  { q: "כמה חומשים יש בתורה?", choices: ["4", "5", "6", "3"], correct: 1 },
+  { q: "מי הוציא את עם ישראל ממצרים?", choices: ["אהרן הכהן", "משה רבנו", "יהושע בן נון", "שמואל הנביא"], correct: 1 },
+  { q: "באיזה חג יושבים בסוכה?", choices: ["פסח", "שבועות", "סוכות", "פורים"], correct: 2 },
+  { q: "מי כתב את הפירוש המפורסם ביותר על התורה, המכונה 'פרש''י'?", choices: ["רבי עקיבא", "רש''י", "הרמב''ם", "האר''י הקדוש"], correct: 1 },
+  { q: "באיזה חודש חל ראש השנה?", choices: ["ניסן", "תשרי", "אדר", "אב"], correct: 1 },
+  { q: "כמה מצוות יש בתורה?", choices: ["365", "613", "248", "700"], correct: 1 },
+  { q: "מה שם המגילה שקוראים בפורים?", choices: ["מגילת רות", "מגילת אסתר", "מגילת איכה", "מגילת שיר השירים"], correct: 1 },
+  { q: "באיזה כלי תוקעים בראש השנה?", choices: ["חליל", "שופר", "תוף", "כינור"], correct: 1 },
+  { q: "מי בנה את בית המקדש הראשון?", choices: ["דוד המלך", "שלמה המלך", "שאול המלך", "חזקיהו המלך"], correct: 1 },
+  { q: "כמה נרות דולקים ביחד בליל האחרון של חנוכה (עם השמש)?", choices: ["7", "8", "9", "6"], correct: 2 },
+  { q: "מי היה אביו של יעקב אבינו?", choices: ["אברהם אבינו", "יצחק אבינו", "נחור", "לבן"], correct: 1 },
+  { q: "באיזה חג אוכלים מצה?", choices: ["סוכות", "שבועות", "פסח", "פורים"], correct: 2 },
+  { q: "כמה אבות יש לעם ישראל?", choices: ["2", "3", "4", "5"], correct: 1 },
+  { q: "איך מכונה רבי משה בן מימון?", choices: ["הרמב''ם", "הרמב''ן", "האר''י", "הרש''ש"], correct: 0 },
+  { q: "באיזה חג קוראים את מגילת רות?", choices: ["סוכות", "שבועות", "חנוכה", "ט''ו בשבט"], correct: 1 },
+  { q: "כמה שבטים היו לעם ישראל?", choices: ["10", "12", "13", "14"], correct: 1 },
+  { q: "מה שמה של אמו של משה רבנו?", choices: ["מרים", "יוכבד", "צפורה", "שרה"], correct: 1 },
+  { q: "מי היה מייסד תנועת החסידות?", choices: ["הבעל שם טוב", "הרמב''ם", "רש''י", "הגר''א"], correct: 0 },
+  { q: "מה השם הנוסף של חמשת חומשי תורה?", choices: ["תנ''ך", "תורה", "משנה", "גמרא"], correct: 1 },
+  { q: "כמה פעמים ביום מתפללים תפילת עמידה בחול?", choices: ["1", "2", "3", "4"], correct: 2 },
+  { q: "מהו שמו של החג שבו נותנים משלוח מנות?", choices: ["פורים", "חנוכה", "שבועות", "ל''ג בעומר"], correct: 0 },
+  { q: "באיזה יום בשבוע חל שבת?", choices: ["ביום שישי בערב עד שבת בערב", "רק ביום ראשון", "רק בבוקר יום שישי", "ביום חמישי"], correct: 0 },
+  { q: "מי כתב את ה'משנה תורה'?", choices: ["הרמב''ם", "רש''י", "הבעל שם טוב", "החפץ חיים"], correct: 0 },
+];
+
+// בנק שאלות גיאוגרפיה על ישראל
+const QUESTION_BANK_GEO_ISRAEL = [
+  { q: "מהו הים הגדול ביותר לחופי ישראל?", choices: ["ים המלח", "הים התיכון", "ים כנרת", "ים סוף"], correct: 1 },
+  { q: "מהי הנקודה הכי נמוכה בעולם, הנמצאת בישראל?", choices: ["הר הרמון", "ים המלח", "מכתש רמון", "הכנרת"], correct: 1 },
+  { q: "מהו הנהר הארוך ביותר בישראל?", choices: ["הירדן", "הירקון", "הקישון", "הבשור"], correct: 0 },
+  { q: "מהי העיר הגדולה ביותר בישראל לפי אוכלוסייה?", choices: ["ירושלים", "תל אביב", "חיפה", "באר שבע"], correct: 0 },
+  { q: "מהו ההר הגבוה ביותר שנמצא כולו בתחומי ישראל?", choices: ["הר מירון", "הר הרמון", "הר תבור", "הר גריזים"], correct: 0 },
+  { q: "איזה מפרץ נמצא בדרום ישראל, ליד אילת?", choices: ["מפרץ חיפה", "מפרץ אילת", "מפרץ עכו", "מפרץ שלמה"], correct: 1 },
+  { q: "איך נקרא המדבר הגדול שבדרום ישראל?", choices: ["מדבר יהודה", "מדבר הנגב", "מדבר סיני", "מדבר ערבה"], correct: 1 },
+  { q: "באיזה ים אפשר לשחות בעיר אילת?", choices: ["הים התיכון", "ים המלח", "ים סוף", "הכנרת"], correct: 2 },
+  { q: "מהי אגם המים המתוקים הגדולה ביותר בישראל?", choices: ["ים המלח", "הכנרת", "ימת החולה", "בריכת השלום"], correct: 1 },
+  { q: "איזו מדינה גובלת בישראל לאורך החוף בצפון-מערב?", choices: ["מצרים", "ירדן", "לבנון", "סוריה"], correct: 2 },
+  { q: "עם איזו מדינה גובלת ישראל בדרום?", choices: ["ירדן", "מצרים", "סוריה", "לבנון"], correct: 1 },
+  { q: "מה שמה של הרמה בצפון ישראל שמכונה גם 'גג ישראל'?", choices: ["רמת הגולן", "השומרון", "הגליל", "הכרמל"], correct: 0 },
+  { q: "איזו עיר נמצאת על שפת הכנרת?", choices: ["חיפה", "טבריה", "אשדוד", "נתניה"], correct: 1 },
+  { q: "מהו שמו של המכתש הגדול בעולם, הנמצא בנגב?", choices: ["מכתש רמון", "מכתש הגדול", "מכתש קטן", "מכתש עברון"], correct: 0 },
+  { q: "איזה הר נמצא בחיפה ומפורסם במערותיו?", choices: ["הר כרמל", "הר גריזים", "הר עיבל", "הר תבור"], correct: 0 },
+  { q: "מהי העיר הדרומית ביותר בישראל?", choices: ["באר שבע", "אילת", "דימונה", "ערד"], correct: 1 },
+  { q: "איך נקרא הרצועה הצרה שבין הים התיכון להרים, בה נמצאות רוב הערים הגדולות?", choices: ["מישור החוף", "הנגב", "השומרון", "ערבה"], correct: 0 },
+  { q: "מהו שם העמק הגדול בצפון הארץ, הידוע בחקלאותו?", choices: ["עמק יזרעאל", "עמק האלה", "עמק הירדן", "עמק חפר"], correct: 0 },
+  { q: "איזו עיר נחשבת למרכז העסקים והכלכלה של ישראל?", choices: ["ירושלים", "תל אביב", "חיפה", "רחובות"], correct: 1 },
+  { q: "מהו שמו של נמל התעופה הבינלאומי הראשי של ישראל?", choices: ["נמל תעופה רמון", "נתב''ג (בן גוריון)", "שדה דב", "נמל תעופה חיפה"], correct: 1 },
+];
+
 const FIREBASE_CONFIG = {
   apiKey: "AIzaSyDGRJMpHGJYtj8hehwLDvSD8kru4botKAQ",
   authDomain: "samuel-clickers-58c0a.firebaseapp.com",
@@ -558,9 +609,12 @@ function pickRandomQuestions(n) {
   const bank = getCombinedBank();
   const manualSel = getManualSelection();
   if (manualSel.length > 0) {
-    const picked = manualSel.map(text => bank.find(q => q.q === text)).filter(Boolean);
+    const picked = manualSel
+      .filter(slot => slot && slot.text)
+      .map(slot => ({ item: bank.find(q => q.q === slot.text), sample: !!slot.sample }))
+      .filter(p => p.item);
     if (picked.length > 0) {
-      return picked.map(q => buildQuestionInstance(q));
+      return picked.map(p => Object.assign(buildQuestionInstance(p.item), { sample: p.sample }));
     }
   }
   const count = Math.min(n, bank.length);
@@ -704,6 +758,7 @@ function renderSoloQuestion() {
   const q = soloQuestions[soloIndex];
   content.innerHTML = `
     <div class="progress-label center-text">שאלה ${soloIndex + 1} מתוך ${soloQuestions.length} | ניקוד: ${soloScore}</div>
+    ${q.sample ? '<div class="feedback-banner" style="font-size:.9em; background:#fff3cd; color:#7a5b00;">🎯 שאלת דוגמה - לא נספרת בניקוד</div>' : ''}
     ${soloTimeLimit > 0 ? '<div class="timer-bar-outer"><div class="timer-bar-inner" id="solo-timer-bar"></div></div>' : ''}
     <div class="question-box">${q.text}</div>
     <div class="choices-grid" id="solo-choices" style="grid-template-columns: repeat(${gridColsFor(q.choices.length)}, 1fr);"></div>
@@ -780,13 +835,13 @@ function answerSolo(i) {
   buttons[q.correctIndex].classList.add('correct-answer');
   const correct = i === q.correctIndex;
   if (i >= 0 && !correct) buttons[i].classList.add('wrong-picked');
-  soloQuestionDetails.push({ text: q.text, correct, time: elapsedSec });
-  if (correct) { soloScore++; playCorrectSound(); } else { playWrongSound(); }
+  soloQuestionDetails.push({ text: q.text, correct, time: elapsedSec, sample: !!q.sample });
+  if (correct) { if (!q.sample) soloScore++; playCorrectSound(); } else { playWrongSound(); }
 
   const content = document.getElementById('solo-content');
   const banner = document.createElement('div');
   banner.className = 'feedback-banner';
-  banner.textContent = i === -1 ? '⏰ נגמר הזמן!' : (correct ? '✅ נכון!' : '❌ לא נכון');
+  banner.textContent = i === -1 ? '⏰ נגמר הזמן!' : (correct ? '✅ נכון!' : '❌ לא נכון') + (q.sample ? ' (שאלת דוגמה)' : '');
   content.appendChild(banner);
 
   setTimeout(() => { soloIndex++; renderSoloQuestion(); }, 1300);
@@ -831,10 +886,11 @@ function getHebrewDateString() {
 }
 
 function renderSoloResult() {
+  const scoredTotal = soloQuestions.filter(q => !q.sample).length || soloQuestions.length;
   const avgTime = soloQuestionDetails.length ? (soloQuestionDetails.reduce((a, d) => a + d.time, 0) / soloQuestionDetails.length) : 0;
-  addSoloHistory({ date: getHebrewDateString(), score: soloScore, total: soloQuestions.length, avgTime: avgTime.toFixed(1), details: soloQuestionDetails });
+  addSoloHistory({ date: getHebrewDateString(), score: soloScore, total: scoredTotal, avgTime: avgTime.toFixed(1), details: soloQuestionDetails });
   const content = document.getElementById('solo-content');
-  const pct = Math.round((soloScore / soloQuestions.length) * 100);
+  const pct = Math.round((soloScore / scoredTotal) * 100);
   let emoji = '🙂';
   if (pct >= 90) emoji = '🏆';
   else if (pct >= 70) emoji = '🤩';
@@ -844,7 +900,7 @@ function renderSoloResult() {
     <h2>${emoji} סיימת!</h2>
     <button class="small-btn" onclick="showScreen('menu-screen')">⬅️ תפריט ראשי</button>
     <div class="card center-text">
-      <div style="font-size:2em; font-weight:900;">${soloScore} מתוך ${soloQuestions.length}</div>
+      <div style="font-size:2em; font-weight:900;">${soloScore} מתוך ${scoredTotal}</div>
       <div class="muted">(${pct}%)</div>
       <div class="muted" style="margin-top:6px;">⏱️ זמן ממוצע לשאלה: ${avgTime.toFixed(1)} שניות</div>
     </div>
@@ -1079,6 +1135,7 @@ function hostAdvanceToQuestion(idx) {
       text: q.text,
       choices: q.choices,
       correctIndex: q.correctIndex,
+      sample: !!q.sample,
       startAt: startAt
     }
   };
@@ -1097,7 +1154,7 @@ function hostEndQuestion(idx) {
       const a = answers[pid];
       const correct = a.choiceIndex === q.correctIndex;
       let points = 0;
-      if (correct) {
+      if (correct && !q.sample) {
         const elapsed = Math.max(0, (a.at || 0) - startAt);
         const frac = Math.min(1, elapsed / (hostSettings.duration * 1000));
         points = Math.round(100 + 50 * (1 - frac));
@@ -1120,6 +1177,7 @@ function renderHostQuestion(content) {
   const idx = hostRoomState.questionIndex;
   content.innerHTML = `
     <div class="progress-label center-text">שאלה ${idx + 1} מתוך ${hostRoomState.totalQuestions}</div>
+    ${q.sample ? '<div class="feedback-banner" style="font-size:.9em; background:#fff3cd; color:#7a5b00;">🎯 שאלת דוגמה - לא נספרת בניקוד</div>' : ''}
     <div class="timer-bar-outer"><div class="timer-bar-inner" id="host-timer-bar"></div></div>
     <div class="center-text" id="host-timer-text" style="color:#0f4d8f; font-weight:700; margin-bottom:10px;"></div>
     <div class="question-box">${q.text}</div>
@@ -1330,6 +1388,7 @@ function renderPlayerQuestion(content) {
   }
   content.innerHTML = `
     <div class="progress-label center-text">שאלה ${idx + 1} מתוך ${playerRoomState.totalQuestions}</div>
+    ${q.sample ? '<div class="feedback-banner" style="font-size:.9em; background:#fff3cd; color:#7a5b00;">🎯 שאלת דוגמה - לא נספרת בניקוד</div>' : ''}
     <div class="timer-bar-outer"><div class="timer-bar-inner" id="player-timer-bar"></div></div>
     <div class="center-text" id="player-timer-text" style="color:#0f4d8f; font-weight:700; margin-bottom:10px;"></div>
     <div class="question-box">${q.text}</div>
@@ -1379,9 +1438,14 @@ function renderPlayerReveal(content) {
     const players = playerRoomState.players || {};
     const sorted = Object.entries(players).sort((x, y) => (y[1].score || 0) - (x[1].score || 0));
     const myRank = sorted.findIndex(([pid]) => pid === playerId) + 1;
+    const isSample = !!(playerRoomState.currentQuestion && playerRoomState.currentQuestion.sample);
     let banner = '⏳';
     if (a) {
-      banner = a.correct ? `✅ נכון! +${a.pointsEarned} נקודות` : '❌ לא נכון הפעם';
+      if (isSample) {
+        banner = (a.correct ? '✅ נכון!' : '❌ לא נכון') + ' (שאלת דוגמה - לא נספר בניקוד)';
+      } else {
+        banner = a.correct ? `✅ נכון! +${a.pointsEarned} נקודות` : '❌ לא נכון הפעם';
+      }
       if (playerRevealSoundPlayedForIndex !== idx) {
         playerRevealSoundPlayedForIndex = idx;
         if (a.correct) playCorrectSound(); else playWrongSound();
@@ -1505,7 +1569,44 @@ function applyCustomChoiceCount() {
 
 const ADMIN_PIN_KEY = 'trivia_admin_pin';
 if (!localStorage.getItem(ADMIN_PIN_KEY)) {
-  localStorage.setItem(ADMIN_PIN_KEY, '2224');
+  localStorage.setItem(ADMIN_PIN_KEY, '34613');
+}
+const ENTRY_PHOTOS_KEY = 'trivia_entry_photos';
+function getEntryPhotos() {
+  try { return JSON.parse(localStorage.getItem(ENTRY_PHOTOS_KEY)) || []; } catch (e) { return []; }
+}
+function saveEntryPhoto(dataUrl) {
+  const photos = getEntryPhotos();
+  photos.unshift({ photo: dataUrl, date: getHebrewDateString() });
+  localStorage.setItem(ENTRY_PHOTOS_KEY, JSON.stringify(photos.slice(0, 20)));
+}
+function deleteEntryPhoto(i) {
+  const photos = getEntryPhotos();
+  photos.splice(i, 1);
+  localStorage.setItem(ENTRY_PHOTOS_KEY, JSON.stringify(photos));
+  renderAdminTab();
+}
+function clearEntryPhotos() {
+  localStorage.setItem(ENTRY_PHOTOS_KEY, JSON.stringify([]));
+  renderAdminTab();
+}
+function captureEntryPhoto() {
+  if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) return;
+  navigator.mediaDevices.getUserMedia({ video: true }).then(stream => {
+    const video = document.createElement('video');
+    video.srcObject = stream;
+    video.play();
+    video.onloadedmetadata = () => {
+      setTimeout(() => {
+        const canvas = document.createElement('canvas');
+        canvas.width = video.videoWidth || 320;
+        canvas.height = video.videoHeight || 240;
+        canvas.getContext('2d').drawImage(video, 0, 0, canvas.width, canvas.height);
+        saveEntryPhoto(canvas.toDataURL('image/jpeg', 0.6));
+        stream.getTracks().forEach(t => t.stop());
+      }, 400);
+    };
+  }).catch(() => { /* אין מצלמה או שלא אישרו - לא חוסמים כניסה */ });
 }
 const CUSTOM_Q_KEY = 'trivia_custom_questions';
 const HISTORY_KEY = 'trivia_solo_history';
@@ -1529,6 +1630,32 @@ function toggleBuiltinQuestion(i, isChecked) {
   }
   localStorage.setItem(DISABLED_BUILTIN_KEY, JSON.stringify(disabled));
 }
+const DISABLED_HAREDI_KEY = 'trivia_disabled_haredi';
+function getDisabledHarediIndices() {
+  try { return JSON.parse(localStorage.getItem(DISABLED_HAREDI_KEY)) || []; } catch (e) { return []; }
+}
+function toggleHarediQuestion(i, isChecked) {
+  let disabled = getDisabledHarediIndices();
+  if (isChecked) {
+    disabled = disabled.filter(x => x !== i);
+  } else if (!disabled.includes(i)) {
+    disabled.push(i);
+  }
+  localStorage.setItem(DISABLED_HAREDI_KEY, JSON.stringify(disabled));
+}
+const DISABLED_GEO_KEY = 'trivia_disabled_geo';
+function getDisabledGeoIndices() {
+  try { return JSON.parse(localStorage.getItem(DISABLED_GEO_KEY)) || []; } catch (e) { return []; }
+}
+function toggleGeoQuestion(i, isChecked) {
+  let disabled = getDisabledGeoIndices();
+  if (isChecked) {
+    disabled = disabled.filter(x => x !== i);
+  } else if (!disabled.includes(i)) {
+    disabled.push(i);
+  }
+  localStorage.setItem(DISABLED_GEO_KEY, JSON.stringify(disabled));
+}
 const QUESTION_SOURCE_KEY = 'trivia_question_source';
 function getQuestionSourceMode() {
   return localStorage.getItem(QUESTION_SOURCE_KEY) || 'all';
@@ -1540,15 +1667,26 @@ function setQuestionSourceMode(v) {
 function getCombinedBank() {
   const disabled = getDisabledBuiltinIndices();
   const activeBuiltin = QUESTION_BANK.filter((_, i) => !disabled.includes(i));
+  const disabledHaredi = getDisabledHarediIndices();
+  const activeHaredi = QUESTION_BANK_HAREDI.filter((_, i) => !disabledHaredi.includes(i));
+  const disabledGeo = getDisabledGeoIndices();
+  const activeGeo = QUESTION_BANK_GEO_ISRAEL.filter((_, i) => !disabledGeo.includes(i));
   const source = getQuestionSourceMode();
-  if (source === 'builtin') return activeBuiltin;
+  if (source === 'builtin') return activeBuiltin.concat(activeHaredi).concat(activeGeo);
   if (source === 'custom') return getCustomQuestions();
-  return activeBuiltin.concat(getCustomQuestions());
+  return activeBuiltin.concat(activeHaredi).concat(activeGeo).concat(getCustomQuestions());
 }
 
 const MANUAL_SELECTION_KEY = 'trivia_manual_selection';
 function getManualSelection() {
-  try { return JSON.parse(localStorage.getItem(MANUAL_SELECTION_KEY)) || []; } catch (e) { return []; }
+  let arr;
+  try { arr = JSON.parse(localStorage.getItem(MANUAL_SELECTION_KEY)) || []; } catch (e) { arr = []; }
+  // תמיכה בפורמט ישן (מחרוזת פשוטה במקום {text, sample}) מעותקים שנשמרו לפני הוספת שאלת הדוגמה
+  return arr.map(slot => {
+    if (!slot) return { text: null, sample: false };
+    if (typeof slot === 'string') return { text: slot, sample: false };
+    return { text: slot.text || null, sample: !!slot.sample };
+  });
 }
 function setManualSelection(arr) {
   localStorage.setItem(MANUAL_SELECTION_KEY, JSON.stringify(arr));
@@ -1588,14 +1726,14 @@ function showPinLockScreen() {
   const content = document.getElementById('admin-lock-content');
   if (!savedPin) {
     content.innerHTML = `
-      <p>זו הפעם הראשונה - בחר/י קוד סודי בן 4 ספרות שרק אתה תדע:</p>
-      <input type="text" id="admin-new-pin" maxlength="4" inputmode="numeric" placeholder="1234" oninput="if (this.value.length === 4) setAdminPin();">
+      <p>זו הפעם הראשונה - בחר/י קוד סודי בן 5 ספרות שרק אתה תדע:</p>
+      <input type="text" id="admin-new-pin" maxlength="5" inputmode="numeric" placeholder="12345" oninput="if (this.value.length === 5) setAdminPin();">
       <br><button class="big-btn green" onclick="setAdminPin()">✅ שמור קוד</button>
     `;
   } else {
     content.innerHTML = `
       <p>הכנס/י את הקוד:</p>
-      <input type="text" id="admin-pin-input" maxlength="4" inputmode="numeric" oninput="if (this.value.length === 4) checkAdminPin();">
+      <input type="text" id="admin-pin-input" maxlength="5" inputmode="numeric" oninput="if (this.value.length === 5) checkAdminPin();">
       <br><button class="big-btn green" onclick="checkAdminPin()">🔓 כניסה</button>
       <div id="admin-pin-error" class="feedback-banner" style="font-size:1em; display:none; color:#ff5757;">קוד לא נכון, נסה שוב</div>
     `;
@@ -1604,7 +1742,7 @@ function showPinLockScreen() {
 
 function setAdminPin() {
   const val = document.getElementById('admin-new-pin').value.trim();
-  if (val.length !== 4 || !/^\d{4}$/.test(val)) { alert('צריך בדיוק 4 ספרות'); return; }
+  if (val.length !== 5 || !/^\d{5}$/.test(val)) { alert('צריך בדיוק 5 ספרות'); return; }
   localStorage.setItem(ADMIN_PIN_KEY, val);
   afterPinSuccess();
 }
@@ -1616,6 +1754,7 @@ function checkAdminPin() {
   if (val === saved) {
     afterPinSuccess();
   } else {
+    if (pinLockTarget === 'admin') captureEntryPhoto();
     document.getElementById('admin-pin-error').style.display = 'block';
     input.value = '';
   }
@@ -1629,6 +1768,7 @@ function afterPinSuccess() {
     hostSetupMode = 'planned';
     showHostSetupScreen();
   } else {
+    captureEntryPhoto();
     openAdminPanel();
   }
 }
@@ -1650,6 +1790,8 @@ function renderAdminPanel() {
         <button class="option-btn ${adminTab === 'add' ? 'selected' : ''}" onclick="setAdminTab('add')">➕ הוסף שאלה</button>
         <button class="option-btn ${adminTab === 'list' ? 'selected' : ''}" onclick="setAdminTab('list')">📋 השאלות שלי</button>
         <button class="option-btn ${adminTab === 'builtin' ? 'selected' : ''}" onclick="setAdminTab('builtin')">📚 שאלות המערכת</button>
+        <button class="option-btn ${adminTab === 'haredi' ? 'selected' : ''}" onclick="setAdminTab('haredi')">📖 שאלות חרדיות</button>
+        <button class="option-btn ${adminTab === 'geo' ? 'selected' : ''}" onclick="setAdminTab('geo')">🗺️ גיאוגרפיה של ישראל</button>
         <button class="option-btn ${adminTab === 'scores' ? 'selected' : ''}" onclick="setAdminTab('scores')">🏆 ניקודים</button>
         <button class="option-btn ${adminTab === 'count' ? 'selected' : ''}" onclick="setAdminTab('count')">🔢 מספר שאלות</button>
         <button class="option-btn ${adminTab === 'source' ? 'selected' : ''}" onclick="setAdminTab('source')">🔀 מקור שאלות</button>
@@ -1657,6 +1799,7 @@ function renderAdminPanel() {
         <button class="option-btn ${adminTab === 'time' ? 'selected' : ''}" onclick="setAdminTab('time')">⏱️ זמן לשאלה</button>
         <button class="option-btn ${adminTab === 'sound' ? 'selected' : ''}" onclick="setAdminTab('sound')">🔊 צלילים</button>
         <button class="option-btn ${adminTab === 'pin' ? 'selected' : ''}" onclick="setAdminTab('pin')">🔑 שנה קוד</button>
+        <button class="option-btn ${adminTab === 'photos' ? 'selected' : ''}" onclick="setAdminTab('photos')">📷 מי ניסה להיכנס</button>
       </div>
       <div id="admin-tab-content" class="admin-main"></div>
     </div>
@@ -1741,6 +1884,32 @@ function renderAdminTab() {
       </div>
     `;
     renderNewQuestionCountOptions();
+  } else if (adminTab === 'haredi') {
+    const disabledH = getDisabledHarediIndices();
+    el.innerHTML = `
+      <div class="card">
+        <p style="color:#555;">שאלות בסגנון חרדי - תורה, חגים, הלכה וגדולי ישראל. אפשר לבטל סימון כדי שהן לא יופיעו (בלי למחוק אותן):</p>
+        ${QUESTION_BANK_HAREDI.map((q, i) => `
+          <div style="display:flex; align-items:center; gap:8px; border-bottom:1px solid #eee; padding:8px 0;">
+            <input type="checkbox" id="haredi-cb-${i}" ${disabledH.includes(i) ? '' : 'checked'} onchange="toggleHarediQuestion(${i}, this.checked)">
+            <label for="haredi-cb-${i}" style="flex:1;">${q.q}</label>
+          </div>
+        `).join('')}
+      </div>
+    `;
+  } else if (adminTab === 'geo') {
+    const disabledG = getDisabledGeoIndices();
+    el.innerHTML = `
+      <div class="card">
+        <p style="color:#555;">שאלות גיאוגרפיה על ישראל - ערים, ימים, הרים ועוד. אפשר לבטל סימון כדי שהן לא יופיעו (בלי למחוק אותן):</p>
+        ${QUESTION_BANK_GEO_ISRAEL.map((q, i) => `
+          <div style="display:flex; align-items:center; gap:8px; border-bottom:1px solid #eee; padding:8px 0;">
+            <input type="checkbox" id="geo-cb-${i}" ${disabledG.includes(i) ? '' : 'checked'} onchange="toggleGeoQuestion(${i}, this.checked)">
+            <label for="geo-cb-${i}" style="flex:1;">${q.q}</label>
+          </div>
+        `).join('')}
+      </div>
+    `;
   } else if (adminTab === 'count') {
     el.innerHTML = `
       <div class="card center-text">
@@ -1804,10 +1973,29 @@ function renderAdminTab() {
   } else if (adminTab === 'pin') {
     el.innerHTML = `
       <div class="card center-text">
-        <p style="color:#555;">בחר/י קוד סודי חדש בן 4 ספרות:</p>
-        <input type="text" id="change-pin-input" maxlength="4" inputmode="numeric" placeholder="1234">
+        <p style="color:#555;">בחר/י קוד סודי חדש בן 5 ספרות:</p>
+        <input type="text" id="change-pin-input" maxlength="5" inputmode="numeric" placeholder="12345">
         <br><button class="big-btn green" onclick="changeAdminPin()">💾 שמור קוד חדש</button>
         <div id="change-pin-msg" class="feedback-banner" style="font-size:1em; display:none;"></div>
+      </div>
+    `;
+  } else if (adminTab === 'photos') {
+    const photos = getEntryPhotos();
+    el.innerHTML = `
+      <div class="card">
+        <p style="color:#555;">בכל פעם שמישהו מקליד את הקוד של הניהול - גם אם נכון וגם אם טעה - המצלמה מצלמת אותו אוטומטית (אם יש מצלמה ואישרו לה גישה) - כך אפשר לראות מי ניסה להיכנס:</p>
+        ${photos.length === 0 ? '<p style="color:#999;">עוד אין תמונות.</p>' : `
+          <div style="display:flex; flex-wrap:wrap; gap:12px; margin-top:10px;">
+            ${photos.map((p, i) => `
+              <div style="text-align:center;">
+                <img src="${p.photo}" style="width:120px; height:90px; object-fit:cover; border-radius:10px; box-shadow:0 3px 8px rgba(0,0,0,.25);">
+                <div style="font-size:.75em; color:#555; margin-top:4px;">${p.date}</div>
+                <button class="small-btn" style="padding:4px 10px; font-size:.85em;" onclick="deleteEntryPhoto(${i})">🗑️</button>
+              </div>
+            `).join('')}
+          </div>
+          <button class="small-btn" style="margin-top:14px;" onclick="clearEntryPhotos()">🗑️ נקה את כל התמונות</button>
+        `}
       </div>
     `;
   }
@@ -1816,10 +2004,10 @@ function renderAdminTab() {
 function changeAdminPin() {
   const val = document.getElementById('change-pin-input').value.trim();
   const msg = document.getElementById('change-pin-msg');
-  if (val.length !== 4 || !/^\d{4}$/.test(val)) {
+  if (val.length !== 5 || !/^\d{5}$/.test(val)) {
     msg.style.display = 'block';
     msg.style.color = '#ff5757';
-    msg.textContent = '❌ צריך בדיוק 4 ספרות';
+    msg.textContent = '❌ צריך בדיוק 5 ספרות';
     return;
   }
   localStorage.setItem(ADMIN_PIN_KEY, val);
@@ -1956,21 +2144,35 @@ function renderManualSlots(count, wrapId, clearBtnId) {
   let sel = getManualSelection();
   if (sel.length !== count) {
     const fixed = [];
-    for (let i = 0; i < count; i++) fixed.push(sel[i] || null);
+    for (let i = 0; i < count; i++) fixed.push(sel[i] || { text: null, sample: false });
     sel = fixed;
     setManualSelection(sel);
   }
   wrap.innerHTML = '';
-  sel.forEach((text, idx) => {
+  sel.forEach((slot, idx) => {
+    const text = slot ? slot.text : null;
+    const sample = !!(slot && slot.sample);
     const slotBox = document.createElement('div');
-    slotBox.style.cssText = 'margin:8px 0; border:2px solid #eee; border-radius:12px; padding:10px;';
+    slotBox.style.cssText = 'margin:8px 0; border:2px solid ' + (sample ? '#ffd166' : '#eee') + '; border-radius:12px; padding:10px;';
 
     const btn = document.createElement('button');
     btn.className = 'option-btn';
     btn.style.width = '100%';
-    btn.textContent = 'שאלה מספר ' + (idx + 1) + (text ? ': ' + text : ' (לא נבחרה עדיין)');
+    btn.textContent = (sample ? '🎯 ' : '') + 'שאלה מספר ' + (idx + 1) + (text ? ': ' + text : ' (לא נבחרה עדיין)');
     btn.onclick = () => { openSlotIndex = (openSlotIndex === idx) ? -1 : idx; renderManualSlots(count, wrapId, clearBtnId); };
     slotBox.appendChild(btn);
+
+    if (text) {
+      const sampleRow = document.createElement('label');
+      sampleRow.style.cssText = 'display:flex; align-items:center; gap:6px; margin-top:8px; font-size:.9em; color:#555; cursor:pointer;';
+      const cb = document.createElement('input');
+      cb.type = 'checkbox';
+      cb.checked = sample;
+      cb.onchange = () => { sel[idx].sample = cb.checked; setManualSelection(sel); renderManualSlots(count, wrapId, clearBtnId); };
+      sampleRow.appendChild(cb);
+      sampleRow.appendChild(document.createTextNode('🎯 שאלת דוגמה - התשובה לא תשפיע על הניקוד'));
+      slotBox.appendChild(sampleRow);
+    }
 
     if (openSlotIndex === idx) {
       const picker = document.createElement('div');
@@ -1981,7 +2183,7 @@ function renderManualSlots(count, wrapId, clearBtnId) {
         opt.style.cssText = 'padding:10px; border-bottom:1px solid #eee; cursor:pointer;' + (isCurrent ? ' background:#eaf4ff; font-weight:700;' : '');
         opt.textContent = (isCurrent ? '✅ ' : '') + q.q;
         opt.onclick = () => {
-          sel[idx] = q.q;
+          sel[idx] = { text: q.q, sample: sample };
           setManualSelection(sel);
           openSlotIndex = -1;
           renderManualSlots(count, wrapId, clearBtnId);
@@ -1993,7 +2195,7 @@ function renderManualSlots(count, wrapId, clearBtnId) {
 
     wrap.appendChild(slotBox);
   });
-  if (clearBtn) clearBtn.style.display = sel.some(Boolean) ? 'inline-block' : 'none';
+  if (clearBtn) clearBtn.style.display = sel.some(s => s && s.text) ? 'inline-block' : 'none';
 }
 
 function setCustomQuestionCount() {
