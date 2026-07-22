@@ -159,6 +159,14 @@
   .timer-bar-outer { width: 100%; max-width: 440px; height: 16px; background: rgba(255,255,255,.35); border-radius: 10px; overflow: hidden; margin-bottom: 16px; }
   .timer-bar-inner { height: 100%; background: #ffd166; width: 100%; transition: width .25s linear; }
 
+  .question-image {
+    display: block;
+    max-width: 100%;
+    max-height: 260px;
+    margin: 0 auto 14px;
+    border-radius: 18px;
+    box-shadow: 0 8px 20px rgba(0,0,0,.25);
+  }
   .question-box {
     background: linear-gradient(160deg, #ffffff, #eaf4ff);
     border: 3px solid #bfe0ff;
@@ -624,7 +632,7 @@ function buildQuestionInstance(bankItem) {
   const order = shuffleArray([...Array(bankItem.choices.length).keys()]);
   const choices = order.map(i => bankItem.choices[i]);
   const correctIndex = order.indexOf(bankItem.correct);
-  return { text: bankItem.q, choices, correctIndex };
+  return { text: bankItem.q, choices, correctIndex, image: bankItem.image || null };
 }
 
 function pickRandomQuestions(n) {
@@ -782,6 +790,7 @@ function renderSoloQuestion() {
     <div class="progress-label center-text">שאלה ${soloIndex + 1} מתוך ${soloQuestions.length} | ניקוד: ${soloScore}</div>
     ${q.sample ? '<div class="feedback-banner" style="font-size:.9em; background:#fff3cd; color:#7a5b00;">🎯 שאלת דוגמה - לא נספרת בניקוד</div>' : ''}
     ${soloTimeLimit > 0 ? '<div class="timer-bar-outer"><div class="timer-bar-inner" id="solo-timer-bar"></div></div>' : ''}
+    ${q.image ? `<img src="${q.image}" class="question-image" onerror="this.style.display='none'">` : ''}
     <div class="question-box">${q.text}</div>
     <div class="choices-grid" id="solo-choices" style="grid-template-columns: repeat(${gridColsFor(q.choices.length)}, 1fr);"></div>
     <div class="center-text" style="margin-top:18px;">
@@ -1157,6 +1166,7 @@ function hostAdvanceToQuestion(idx) {
       text: q.text,
       choices: q.choices,
       correctIndex: q.correctIndex,
+      image: q.image || null,
       sample: !!q.sample,
       startAt: startAt
     }
@@ -1202,6 +1212,7 @@ function renderHostQuestion(content) {
     ${q.sample ? '<div class="feedback-banner" style="font-size:.9em; background:#fff3cd; color:#7a5b00;">🎯 שאלת דוגמה - לא נספרת בניקוד</div>' : ''}
     <div class="timer-bar-outer"><div class="timer-bar-inner" id="host-timer-bar"></div></div>
     <div class="center-text" id="host-timer-text" style="color:#0f4d8f; font-weight:700; margin-bottom:10px;"></div>
+    ${q.image ? `<img src="${q.image}" class="question-image" onerror="this.style.display='none'">` : ''}
     <div class="question-box">${q.text}</div>
     <div class="choices-grid" style="grid-template-columns: repeat(${gridColsFor(q.choices.length)}, 1fr);">
       ${q.choices.map((c, i) => `<div class="choice-btn choice-${i}" style="cursor:default;">${c}</div>`).join('')}
@@ -1413,6 +1424,7 @@ function renderPlayerQuestion(content) {
     ${q.sample ? '<div class="feedback-banner" style="font-size:.9em; background:#fff3cd; color:#7a5b00;">🎯 שאלת דוגמה - לא נספרת בניקוד</div>' : ''}
     <div class="timer-bar-outer"><div class="timer-bar-inner" id="player-timer-bar"></div></div>
     <div class="center-text" id="player-timer-text" style="color:#0f4d8f; font-weight:700; margin-bottom:10px;"></div>
+    ${q.image ? `<img src="${q.image}" class="question-image" onerror="this.style.display='none'">` : ''}
     <div class="question-box">${q.text}</div>
     <div class="choices-grid" id="player-choices" style="grid-template-columns: repeat(${gridColsFor(q.choices.length)}, 1fr);"></div>
   `;
@@ -1542,6 +1554,8 @@ function renderAddQuestionFormHtml() {
     <div class="card">
       <p style="color:#555;">כתוב שאלה, ובחר כמה תשובות אפשריות ואיזו נכונה:</p>
       <input type="text" id="new-q-text" placeholder="השאלה שלך" style="max-width:100%;">
+      <p style="color:#555; margin-top:12px;">קישור לתמונה לשאלה (רשות - אפשר להשאיר ריק):</p>
+      <input type="text" id="new-q-image" placeholder="https://... (קישור לתמונה)" style="max-width:100%; direction:ltr;">
       <p style="color:#555; margin-top:12px;">כמה תשובות אפשריות?</p>
       <div class="option-row" id="new-q-count-row"></div>
       <div style="display:flex; align-items:center; justify-content:center; gap:6px; margin-bottom:12px;">
@@ -1845,6 +1859,7 @@ function renderAdminTab() {
       <div class="card">
         ${list.length === 0 ? '<p style="color:#555;">עוד לא הוספת שאלות משלך.</p>' : list.map((q, i) => `
           <div style="border-bottom:1px solid #eee; padding:10px 0;">
+            ${q.image ? `<img src="${q.image}" style="max-width:120px; max-height:80px; border-radius:8px; display:block; margin-bottom:6px;" onerror="this.style.display='none'">` : ''}
             <div style="font-weight:700;">${q.q}</div>
             <div style="color:#555; font-size:.9em;">✅ ${q.choices[q.correct]}</div>
             <button class="small-btn" onclick="deleteCustomQuestion(${i})">🗑️ מחק</button>
@@ -2077,6 +2092,7 @@ function renderMusicToggle() {
 
 function addCustomQuestion() {
   const text = document.getElementById('new-q-text').value.trim();
+  const image = document.getElementById('new-q-image').value.trim();
   const n = newQuestionChoiceCount;
   const choices = Array.from({ length: n }, (_, i) => document.getElementById('new-q-choice-' + i).value.trim());
   const correctRadio = document.querySelector('input[name="new-q-correct"]:checked');
@@ -2089,7 +2105,9 @@ function addCustomQuestion() {
   }
   const correct = parseInt(correctRadio.value, 10);
   const list = getCustomQuestions();
-  list.push({ q: text, choices, correct });
+  const newQ = { q: text, choices, correct };
+  if (image) newQ.image = image;
+  list.push(newQ);
   saveCustomQuestions(list);
   renderAdminTab();
   const newMsg = document.getElementById('add-q-msg');
