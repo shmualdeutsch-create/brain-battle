@@ -653,7 +653,8 @@ function questionMediaHtml(q) {
   if (q.video) {
     const yt = getYouTubeEmbedUrl(q.video);
     html += yt
-      ? `<div class="video-wrap"><iframe src="${yt}" allowfullscreen></iframe></div>`
+      ? `<div class="video-wrap"><iframe src="${yt}" allowfullscreen></iframe></div>
+         <div class="center-text" style="margin:-6px 0 14px;"><a href="${q.video}" target="_blank" rel="noopener" style="color:#0f4d8f; font-weight:700;">▶️ אם הסרטון לא נטען - פתחו ביוטיוב</a></div>`
       : `<video class="question-video" controls src="${q.video}"></video>`;
   }
   return html;
