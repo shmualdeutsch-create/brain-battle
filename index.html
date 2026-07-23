@@ -159,6 +159,16 @@
   .timer-bar-outer { width: 100%; max-width: 440px; height: 16px; background: rgba(255,255,255,.35); border-radius: 10px; overflow: hidden; margin-bottom: 16px; }
   .timer-bar-inner { height: 100%; background: #ffd166; width: 100%; transition: width .25s linear; }
 
+  .image-dropzone {
+    border: 3px dashed #bbb;
+    border-radius: 14px;
+    padding: 20px;
+    text-align: center;
+    cursor: pointer;
+    background: rgba(0,0,0,.02);
+    transition: background .15s, border-color .15s;
+  }
+  .image-dropzone.drag-over { border-color: #4dccc6; background: rgba(77,204,198,.12); }
   .question-image {
     display: block;
     max-width: 100%;
@@ -1547,6 +1557,53 @@ function leavePlayerRoom() {
 
 /* ===================== ניהול - הוספת שאלות וצפייה בניקודים ===================== */
 let newQuestionChoiceCount = 4;
+let newQuestionImageData = null;
+
+function renderQuestionImagePickerHtml() {
+  return `
+    <div id="new-q-dropzone" class="image-dropzone" onclick="document.getElementById('new-q-image-file').click()"
+      ondragover="event.preventDefault(); this.classList.add('drag-over');"
+      ondragleave="this.classList.remove('drag-over');"
+      ondrop="event.preventDefault(); this.classList.remove('drag-over'); handleQuestionImageFile(event.dataTransfer.files[0]);">
+      ${newQuestionImageData
+        ? `<img src="${newQuestionImageData}" style="max-width:100%; max-height:160px; border-radius:10px;">
+           <div style="margin-top:8px;"><button type="button" class="small-btn" onclick="event.stopPropagation(); clearQuestionImageFile();">🗑️ הסר תמונה</button></div>`
+        : `<div style="color:#777;">📷 גררו תמונה לכאן, או לחצו לבחירת קובץ מהמחשב</div>`}
+    </div>
+    <input type="file" id="new-q-image-file" accept="image/*" style="display:none" onchange="handleQuestionImageFile(this.files[0])">
+    <p style="color:#999; font-size:.85em; margin-top:8px;">או, אם יש לכם קישור לתמונה מהאינטרנט:</p>
+    <input type="text" id="new-q-image" placeholder="https://... (קישור לתמונה)" style="max-width:100%; direction:ltr;">
+  `;
+}
+
+function handleQuestionImageFile(file) {
+  if (!file || !file.type.startsWith('image/')) return;
+  const reader = new FileReader();
+  reader.onload = (e) => {
+    const img = new Image();
+    img.onload = () => {
+      const maxW = 900;
+      const scale = Math.min(1, maxW / img.width);
+      const canvas = document.createElement('canvas');
+      canvas.width = Math.round(img.width * scale);
+      canvas.height = Math.round(img.height * scale);
+      canvas.getContext('2d').drawImage(img, 0, 0, canvas.width, canvas.height);
+      newQuestionImageData = canvas.toDataURL('image/jpeg', 0.75);
+      const zone = document.getElementById('new-q-dropzone');
+      if (zone) zone.outerHTML = renderQuestionImagePickerHtml();
+    };
+    img.src = e.target.result;
+  };
+  reader.readAsDataURL(file);
+}
+
+function clearQuestionImageFile() {
+  newQuestionImageData = null;
+  const wrap = document.getElementById('new-q-image-file');
+  if (wrap) wrap.value = '';
+  const zone = document.getElementById('new-q-dropzone');
+  if (zone) zone.outerHTML = renderQuestionImagePickerHtml();
+}
 
 function renderAddQuestionFormHtml() {
   const n = newQuestionChoiceCount;
@@ -1554,8 +1611,8 @@ function renderAddQuestionFormHtml() {
     <div class="card">
       <p style="color:#555;">כתוב שאלה, ובחר כמה תשובות אפשריות ואיזו נכונה:</p>
       <input type="text" id="new-q-text" placeholder="השאלה שלך" style="max-width:100%;">
-      <p style="color:#555; margin-top:12px;">קישור לתמונה לשאלה (רשות - אפשר להשאיר ריק):</p>
-      <input type="text" id="new-q-image" placeholder="https://... (קישור לתמונה)" style="max-width:100%; direction:ltr;">
+      <p style="color:#555; margin-top:12px;">תמונה לשאלה (רשות - אפשר להשאיר ריק):</p>
+      ${renderQuestionImagePickerHtml()}
       <p style="color:#555; margin-top:12px;">כמה תשובות אפשריות?</p>
       <div class="option-row" id="new-q-count-row"></div>
       <div style="display:flex; align-items:center; justify-content:center; gap:6px; margin-bottom:12px;">
@@ -2092,7 +2149,8 @@ function renderMusicToggle() {
 
 function addCustomQuestion() {
   const text = document.getElementById('new-q-text').value.trim();
-  const image = document.getElementById('new-q-image').value.trim();
+  const imageUrl = document.getElementById('new-q-image').value.trim();
+  const image = newQuestionImageData || imageUrl;
   const n = newQuestionChoiceCount;
   const choices = Array.from({ length: n }, (_, i) => document.getElementById('new-q-choice-' + i).value.trim());
   const correctRadio = document.querySelector('input[name="new-q-correct"]:checked');
@@ -2108,7 +2166,15 @@ function addCustomQuestion() {
   const newQ = { q: text, choices, correct };
   if (image) newQ.image = image;
   list.push(newQ);
-  saveCustomQuestions(list);
+  try {
+    saveCustomQuestions(list);
+  } catch (e) {
+    msg.style.display = 'block';
+    msg.style.color = '#ff5757';
+    msg.textContent = '❌ אין מספיק מקום לשמור - נסו תמונה קטנה יותר או קישור במקום קובץ';
+    return;
+  }
+  newQuestionImageData = null;
   renderAdminTab();
   const newMsg = document.getElementById('add-q-msg');
   if (newMsg) {
