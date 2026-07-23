@@ -177,6 +177,25 @@
     border-radius: 18px;
     box-shadow: 0 8px 20px rgba(0,0,0,.25);
   }
+  .video-wrap {
+    position: relative;
+    width: 100%;
+    max-width: 560px;
+    margin: 0 auto 14px;
+    padding-top: 56.25%;
+    border-radius: 18px;
+    overflow: hidden;
+    box-shadow: 0 8px 20px rgba(0,0,0,.25);
+  }
+  .video-wrap iframe { position: absolute; top: 0; left: 0; width: 100%; height: 100%; border: 0; }
+  .question-video {
+    display: block;
+    max-width: 100%;
+    max-height: 320px;
+    margin: 0 auto 14px;
+    border-radius: 18px;
+    box-shadow: 0 8px 20px rgba(0,0,0,.25);
+  }
   .question-box {
     background: linear-gradient(160deg, #ffffff, #eaf4ff);
     border: 3px solid #bfe0ff;
@@ -623,6 +642,23 @@ function initMusicOnFirstInteraction() {
 }
 initMusicOnFirstInteraction();
 
+function getYouTubeEmbedUrl(url) {
+  const m = url.match(/(?:youtube\.com\/(?:watch\?v=|embed\/|shorts\/)|youtu\.be\/)([\w-]{11})/);
+  return m ? `https://www.youtube.com/embed/${m[1]}` : null;
+}
+
+function questionMediaHtml(q) {
+  let html = '';
+  if (q.image) html += `<img src="${q.image}" class="question-image" onerror="this.style.display='none'">`;
+  if (q.video) {
+    const yt = getYouTubeEmbedUrl(q.video);
+    html += yt
+      ? `<div class="video-wrap"><iframe src="${yt}" allowfullscreen></iframe></div>`
+      : `<video class="question-video" controls src="${q.video}"></video>`;
+  }
+  return html;
+}
+
 function gridColsFor(n) {
   if (n <= 4) return n;
   if (n <= 6) return 3;
@@ -642,7 +678,7 @@ function buildQuestionInstance(bankItem) {
   const order = shuffleArray([...Array(bankItem.choices.length).keys()]);
   const choices = order.map(i => bankItem.choices[i]);
   const correctIndex = order.indexOf(bankItem.correct);
-  return { text: bankItem.q, choices, correctIndex, image: bankItem.image || null };
+  return { text: bankItem.q, choices, correctIndex, image: bankItem.image || null, video: bankItem.video || null };
 }
 
 function pickRandomQuestions(n) {
@@ -800,7 +836,7 @@ function renderSoloQuestion() {
     <div class="progress-label center-text">שאלה ${soloIndex + 1} מתוך ${soloQuestions.length} | ניקוד: ${soloScore}</div>
     ${q.sample ? '<div class="feedback-banner" style="font-size:.9em; background:#fff3cd; color:#7a5b00;">🎯 שאלת דוגמה - לא נספרת בניקוד</div>' : ''}
     ${soloTimeLimit > 0 ? '<div class="timer-bar-outer"><div class="timer-bar-inner" id="solo-timer-bar"></div></div>' : ''}
-    ${q.image ? `<img src="${q.image}" class="question-image" onerror="this.style.display='none'">` : ''}
+    ${questionMediaHtml(q)}
     <div class="question-box">${q.text}</div>
     <div class="choices-grid" id="solo-choices" style="grid-template-columns: repeat(${gridColsFor(q.choices.length)}, 1fr);"></div>
     <div class="center-text" style="margin-top:18px;">
@@ -1177,6 +1213,7 @@ function hostAdvanceToQuestion(idx) {
       choices: q.choices,
       correctIndex: q.correctIndex,
       image: q.image || null,
+      video: q.video || null,
       sample: !!q.sample,
       startAt: startAt
     }
@@ -1222,7 +1259,7 @@ function renderHostQuestion(content) {
     ${q.sample ? '<div class="feedback-banner" style="font-size:.9em; background:#fff3cd; color:#7a5b00;">🎯 שאלת דוגמה - לא נספרת בניקוד</div>' : ''}
     <div class="timer-bar-outer"><div class="timer-bar-inner" id="host-timer-bar"></div></div>
     <div class="center-text" id="host-timer-text" style="color:#0f4d8f; font-weight:700; margin-bottom:10px;"></div>
-    ${q.image ? `<img src="${q.image}" class="question-image" onerror="this.style.display='none'">` : ''}
+    ${questionMediaHtml(q)}
     <div class="question-box">${q.text}</div>
     <div class="choices-grid" style="grid-template-columns: repeat(${gridColsFor(q.choices.length)}, 1fr);">
       ${q.choices.map((c, i) => `<div class="choice-btn choice-${i}" style="cursor:default;">${c}</div>`).join('')}
@@ -1434,7 +1471,7 @@ function renderPlayerQuestion(content) {
     ${q.sample ? '<div class="feedback-banner" style="font-size:.9em; background:#fff3cd; color:#7a5b00;">🎯 שאלת דוגמה - לא נספרת בניקוד</div>' : ''}
     <div class="timer-bar-outer"><div class="timer-bar-inner" id="player-timer-bar"></div></div>
     <div class="center-text" id="player-timer-text" style="color:#0f4d8f; font-weight:700; margin-bottom:10px;"></div>
-    ${q.image ? `<img src="${q.image}" class="question-image" onerror="this.style.display='none'">` : ''}
+    ${questionMediaHtml(q)}
     <div class="question-box">${q.text}</div>
     <div class="choices-grid" id="player-choices" style="grid-template-columns: repeat(${gridColsFor(q.choices.length)}, 1fr);"></div>
   `;
@@ -1613,6 +1650,8 @@ function renderAddQuestionFormHtml() {
       <input type="text" id="new-q-text" placeholder="השאלה שלך" style="max-width:100%;">
       <p style="color:#555; margin-top:12px;">תמונה לשאלה (רשות - אפשר להשאיר ריק):</p>
       ${renderQuestionImagePickerHtml()}
+      <p style="color:#555; margin-top:12px;">קישור לסרטון לשאלה (רשות - קישור מיוטיוב או קישור ישיר לסרטון):</p>
+      <input type="text" id="new-q-video" placeholder="https://www.youtube.com/watch?v=..." style="max-width:100%; direction:ltr;">
       <p style="color:#555; margin-top:12px;">כמה תשובות אפשריות?</p>
       <div class="option-row" id="new-q-count-row"></div>
       <div style="display:flex; align-items:center; justify-content:center; gap:6px; margin-bottom:12px;">
@@ -1917,6 +1956,7 @@ function renderAdminTab() {
         ${list.length === 0 ? '<p style="color:#555;">עוד לא הוספת שאלות משלך.</p>' : list.map((q, i) => `
           <div style="border-bottom:1px solid #eee; padding:10px 0;">
             ${q.image ? `<img src="${q.image}" style="max-width:120px; max-height:80px; border-radius:8px; display:block; margin-bottom:6px;" onerror="this.style.display='none'">` : ''}
+            ${q.video ? '<div style="color:#555; font-size:.85em;">🎬 יש סרטון</div>' : ''}
             <div style="font-weight:700;">${q.q}</div>
             <div style="color:#555; font-size:.9em;">✅ ${q.choices[q.correct]}</div>
             <button class="small-btn" onclick="deleteCustomQuestion(${i})">🗑️ מחק</button>
@@ -2151,6 +2191,7 @@ function addCustomQuestion() {
   const text = document.getElementById('new-q-text').value.trim();
   const imageUrl = document.getElementById('new-q-image').value.trim();
   const image = newQuestionImageData || imageUrl;
+  const video = document.getElementById('new-q-video').value.trim();
   const n = newQuestionChoiceCount;
   const choices = Array.from({ length: n }, (_, i) => document.getElementById('new-q-choice-' + i).value.trim());
   const correctRadio = document.querySelector('input[name="new-q-correct"]:checked');
@@ -2165,6 +2206,7 @@ function addCustomQuestion() {
   const list = getCustomQuestions();
   const newQ = { q: text, choices, correct };
   if (image) newQ.image = image;
+  if (video) newQ.video = video;
   list.push(newQ);
   try {
     saveCustomQuestions(list);
