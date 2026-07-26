@@ -895,15 +895,17 @@ function renderSoloQuestion() {
   soloQuestionStartTime = Date.now();
   if (soloIndex >= soloQuestions.length) { renderSoloResult(); return; }
   const q = soloQuestions[soloIndex];
+  const hasVideo = !!q.video;
   content.innerHTML = `
     <div class="progress-label center-text">שאלה ${soloIndex + 1} מתוך ${soloQuestions.length} | ניקוד: ${soloScore}</div>
     ${q.sample ? '<div class="feedback-banner" style="font-size:.9em; background:#fff3cd; color:#7a5b00;">🎯 שאלת דוגמה - לא נספרת בניקוד</div>' : ''}
-    ${soloTimeLimit > 0 ? '<div class="timer-num" id="solo-timer-num"></div><div class="timer-bar-outer"><div class="timer-bar-inner" id="solo-timer-bar"></div></div>' : ''}
+    <div id="solo-timer-wrap">${(!hasVideo && soloTimeLimit > 0) ? '<div class="timer-num" id="solo-timer-num"></div><div class="timer-bar-outer"><div class="timer-bar-inner" id="solo-timer-bar"></div></div>' : ''}</div>
     ${questionMediaHtml(q)}
-    <div class="question-box">${q.text}</div>
-    <div class="choices-grid" id="solo-choices" style="grid-template-columns: repeat(${gridColsFor(q.choices.length)}, 1fr);"></div>
-    <div class="center-text" style="margin-top:18px;">
-      ${soloTimeLimit > 0 ? '<button class="small-btn" id="solo-pause-btn" onclick="toggleSoloPause()">⏸️ השהה</button>' : ''}
+    ${hasVideo ? '<div class="center-text" id="solo-video-gate" style="margin-bottom:14px;"><button class="big-btn green" onclick="startSoloAfterVideo()">▶️ סיימתי לצפות בסרטון - התחילו בשאלה!</button></div>' : ''}
+    <div class="question-box" id="solo-question-box" style="${hasVideo ? 'display:none;' : ''}">${q.text}</div>
+    <div class="choices-grid" id="solo-choices" style="grid-template-columns: repeat(${gridColsFor(q.choices.length)}, 1fr); ${hasVideo ? 'display:none;' : ''}"></div>
+    <div class="center-text" id="solo-controls" style="margin-top:18px;">
+      ${(!hasVideo && soloTimeLimit > 0) ? '<button class="small-btn" id="solo-pause-btn" onclick="toggleSoloPause()">⏸️ השהה</button>' : ''}
       <button class="small-btn" onclick="exitSoloGame()">⬅️ תפריט ראשי</button>
     </div>
   `;
@@ -916,7 +918,25 @@ function renderSoloQuestion() {
     grid.appendChild(b);
   });
 
+  if (!hasVideo && soloTimeLimit > 0) {
+    soloTimeLeft = soloTimeLimit;
+    updateSoloTimerBar();
+    startSoloTimerTick();
+  }
+}
+
+function startSoloAfterVideo() {
+  const gate = document.getElementById('solo-video-gate');
+  if (gate) gate.remove();
+  const qBox = document.getElementById('solo-question-box');
+  if (qBox) qBox.style.display = '';
+  const grid = document.getElementById('solo-choices');
+  if (grid) grid.style.display = '';
   if (soloTimeLimit > 0) {
+    const wrap = document.getElementById('solo-timer-wrap');
+    if (wrap) wrap.innerHTML = '<div class="timer-num" id="solo-timer-num"></div><div class="timer-bar-outer"><div class="timer-bar-inner" id="solo-timer-bar"></div></div>';
+    const controls = document.getElementById('solo-controls');
+    if (controls) controls.insertAdjacentHTML('afterbegin', '<button class="small-btn" id="solo-pause-btn" onclick="toggleSoloPause()">⏸️ השהה</button>');
     soloTimeLeft = soloTimeLimit;
     updateSoloTimerBar();
     startSoloTimerTick();
@@ -1194,6 +1214,7 @@ function renderHost() {
   const content = document.getElementById('host-content');
   const phase = hostRoomState.phase;
   if (phase === 'lobby') renderHostLobby(content);
+  else if (phase === 'video') renderHostVideo(content);
   else if (phase === 'question') renderHostQuestion(content);
   else if (phase === 'reveal') renderHostReveal(content);
   else if (phase === 'finished') renderHostFinal(content);
@@ -1269,6 +1290,22 @@ function hostAdvanceToQuestion(idx) {
     return;
   }
   const q = hostQuestions[idx];
+  if (q.video) {
+    db.ref('rooms/' + hostRoomCode).update({
+      phase: 'video',
+      questionIndex: idx,
+      currentQuestion: {
+        text: q.text,
+        choices: q.choices,
+        correctIndex: q.correctIndex,
+        image: q.image || null,
+        video: q.video || null,
+        sample: !!q.sample,
+        startAt: null
+      }
+    });
+    return;
+  }
   const startAt = firebase.database.ServerValue.TIMESTAMP;
   const updates = {
     phase: 'question',
@@ -1286,6 +1323,30 @@ function hostAdvanceToQuestion(idx) {
   updates['questionMeta/' + idx] = { text: q.text, startAt: startAt };
   db.ref('rooms/' + hostRoomCode).update(updates);
   hostQuestionTimer = setTimeout(() => hostEndQuestion(idx), hostSettings.duration * 1000 + 500);
+}
+
+function hostBeginQuestionAfterVideo() {
+  const idx = hostRoomState.questionIndex;
+  const startAt = firebase.database.ServerValue.TIMESTAMP;
+  const updates = {
+    phase: 'question',
+    'currentQuestion/startAt': startAt
+  };
+  updates['questionMeta/' + idx] = { text: hostQuestions[idx].text, startAt: startAt };
+  db.ref('rooms/' + hostRoomCode).update(updates);
+  hostQuestionTimer = setTimeout(() => hostEndQuestion(idx), hostSettings.duration * 1000 + 500);
+}
+
+function renderHostVideo(content) {
+  const q = hostRoomState.currentQuestion;
+  const idx = hostRoomState.questionIndex;
+  content.innerHTML = `
+    <div class="progress-label center-text">שאלה ${idx + 1} מתוך ${hostRoomState.totalQuestions}</div>
+    <div class="muted center-text" style="margin-bottom:10px;">צפו בסרטון עם השחקנים, ואז תלחצו להתחיל את השאלה</div>
+    ${questionMediaHtml(q)}
+    <button class="big-btn green" onclick="hostBeginQuestionAfterVideo()">▶️ סיימנו לצפות - התחילו בשאלה!</button>
+    <button class="small-btn" onclick="hostStopGame()">🛑 עצור משחק</button>
+  `;
 }
 
 function hostEndQuestion(idx) {
@@ -1496,6 +1557,7 @@ function renderPlayer() {
   const content = document.getElementById('player-content');
   const phase = playerRoomState.phase;
   if (phase === 'lobby') renderPlayerLobby(content);
+  else if (phase === 'video') renderPlayerVideo(content);
   else if (phase === 'question') renderPlayerQuestion(content);
   else if (phase === 'reveal') renderPlayerReveal(content);
   else if (phase === 'finished') renderPlayerFinal(content);
@@ -1519,6 +1581,16 @@ function renderPlayerLobby(content) {
       <div>מחכים שהמנחה יתחיל את המשחק...</div>
       <div class="muted" style="margin-top:10px;">בחדר עכשיו: ${Object.keys(players).length} שחקנים</div>
     </div>
+  `;
+}
+
+function renderPlayerVideo(content) {
+  const q = playerRoomState.currentQuestion;
+  const idx = playerRoomState.questionIndex;
+  content.innerHTML = `
+    <div class="progress-label center-text">שאלה ${idx + 1} מתוך ${playerRoomState.totalQuestions}</div>
+    <div class="muted center-text" style="margin-bottom:10px;">צפו בסרטון... השאלה תתחיל כשהמנחה יסמן שסיימתם</div>
+    ${questionMediaHtml(q)}
   `;
 }
 
