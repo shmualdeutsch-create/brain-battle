@@ -172,13 +172,13 @@
     max-width: 1000px;
   }
   .admin-sidebar {
-    flex: 0 0 200px;
+    flex: 0 0 230px;
     display: flex;
     flex-direction: column;
-    gap: 6px;
+    gap: 8px;
   }
   .admin-sidebar .option-btn {
-    width: 100%; margin: 0; text-align: right; font-size: .72em; padding: 11px 13px;
+    width: 100%; margin: 0; text-align: right; font-size: .92em; padding: 13px 16px;
   }
   .admin-sidebar .option-btn.selected {
     box-shadow: inset 0 0 0 2px var(--accent2); background: color-mix(in srgb, var(--accent2) 10%, var(--panel));
@@ -2495,7 +2495,7 @@ function renderAdminTab() {
           <div style="border-bottom:1px solid #eee; padding:8px 0;">
             <div style="display:flex; align-items:center; gap:8px;">
               <input type="checkbox" id="builtin-cb-${i}" ${disabled.includes(i) ? '' : 'checked'} onchange="toggleBuiltinQuestion(${i}, this.checked)">
-              <span style="flex:1; cursor:pointer;" onclick="toggleQuestionExpand('${key}')">${q.q} ${expanded ? '▲' : '▼'}</span>
+              <span style="flex:1; cursor:pointer;" onclick="toggleQuestionExpand('${key}')">${q.q}</span>
             </div>
             ${expanded ? `<div style="margin-top:6px; margin-right:28px; color:#555; font-size:.9em;">
               ${q.choices.map((c, ci) => `<div>${ci === q.correct ? '✅' : '▫️'} ${c}</div>`).join('')}
@@ -2518,7 +2518,7 @@ function renderAdminTab() {
           <div style="border-bottom:1px solid #eee; padding:8px 0;">
             <div style="display:flex; align-items:center; gap:8px;">
               <input type="checkbox" id="haredi-cb-${i}" ${disabledH.includes(i) ? '' : 'checked'} onchange="toggleHarediQuestion(${i}, this.checked)">
-              <span style="flex:1; cursor:pointer;" onclick="toggleQuestionExpand('${key}')">${q.q} ${expanded ? '▲' : '▼'}</span>
+              <span style="flex:1; cursor:pointer;" onclick="toggleQuestionExpand('${key}')">${q.q}</span>
             </div>
             ${expanded ? `<div style="margin-top:6px; margin-right:28px; color:#555; font-size:.9em;">
               ${q.choices.map((c, ci) => `<div>${ci === q.correct ? '✅' : '▫️'} ${c}</div>`).join('')}
@@ -2540,7 +2540,7 @@ function renderAdminTab() {
           <div style="border-bottom:1px solid #eee; padding:8px 0;">
             <div style="display:flex; align-items:center; gap:8px;">
               <input type="checkbox" id="geo-cb-${i}" ${disabledG.includes(i) ? '' : 'checked'} onchange="toggleGeoQuestion(${i}, this.checked)">
-              <span style="flex:1; cursor:pointer;" onclick="toggleQuestionExpand('${key}')">${q.q} ${expanded ? '▲' : '▼'}</span>
+              <span style="flex:1; cursor:pointer;" onclick="toggleQuestionExpand('${key}')">${q.q}</span>
             </div>
             ${expanded ? `<div style="margin-top:6px; margin-right:28px; color:#555; font-size:.9em;">
               ${q.choices.map((c, ci) => `<div>${ci === q.correct ? '✅' : '▫️'} ${c}</div>`).join('')}
@@ -2574,7 +2574,7 @@ function renderAdminTab() {
             return `
             <div style="border-bottom:1px solid #eee; padding:10px 0;">
               <div style="display:flex; align-items:center; gap:8px;">
-                <span style="flex:1; font-weight:700; cursor:pointer;" onclick="toggleQuestionExpand('${key}')">${q.q} ${expanded ? '▲' : '▼'}</span>
+                <span style="flex:1; font-weight:700; cursor:pointer;" onclick="toggleQuestionExpand('${key}')">${q.q}</span>
                 <button class="small-btn" style="padding:6px 12px;" onclick="deleteQuestionFromCategory('${cat.id}','${cat.scope}',${i})">🗑️</button>
               </div>
               ${expanded ? `<div style="margin-top:6px; color:#555; font-size:.9em;">
