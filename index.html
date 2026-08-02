@@ -1294,6 +1294,7 @@ function hostAdvanceToQuestion(idx) {
     db.ref('rooms/' + hostRoomCode).update({
       phase: 'video',
       questionIndex: idx,
+      broadcastLeaderboard: false,
       currentQuestion: {
         text: q.text,
         choices: q.choices,
@@ -1310,6 +1311,7 @@ function hostAdvanceToQuestion(idx) {
   const updates = {
     phase: 'question',
     questionIndex: idx,
+    broadcastLeaderboard: false,
     currentQuestion: {
       text: q.text,
       choices: q.choices,
@@ -1346,6 +1348,8 @@ function renderHostVideo(content) {
     ${questionMediaHtml(q)}
     <button class="big-btn green" onclick="hostBeginQuestionAfterVideo()">▶️ סיימנו לצפות - התחילו בשאלה!</button>
     <button class="small-btn" onclick="hostStopGame()">🛑 עצור משחק</button>
+    ${renderHostMgmtToggleHtml()}
+    ${renderHostMgmtPanelHtml()}
   `;
 }
 
@@ -1354,6 +1358,7 @@ function hostEndQuestion(idx) {
     const answers = snap.val() || {};
     const q = hostQuestions[idx];
     const startAt = (hostRoomState.currentQuestion && hostRoomState.currentQuestion.startAt) || 0;
+    const effectiveDuration = (hostRoomState.currentQuestion && hostRoomState.currentQuestion.duration) || hostSettings.duration;
     const updates = {};
     Object.keys(answers).forEach(pid => {
       const a = answers[pid];
@@ -1361,7 +1366,7 @@ function hostEndQuestion(idx) {
       let points = 0;
       if (correct && !q.sample) {
         const elapsed = Math.max(0, (a.at || 0) - startAt);
-        const frac = Math.min(1, elapsed / (hostSettings.duration * 1000));
+        const frac = Math.min(1, elapsed / (effectiveDuration * 1000));
         points = Math.round(100 + 50 * (1 - frac));
       }
       updates['answers/' + idx + '/' + pid + '/pointsEarned'] = points;
@@ -1375,6 +1380,78 @@ function hostEndQuestion(idx) {
       });
     });
   });
+}
+
+/* ===================== ניהול משחק באמצע (למנחה) ===================== */
+let hostMgmtOpen = false;
+
+function toggleHostMgmt() {
+  hostMgmtOpen = !hostMgmtOpen;
+  renderHost();
+}
+
+function hostGoToQuestion(idx) {
+  if (idx < 0 || !hostRoomState) return;
+  hostAdvanceToQuestion(idx);
+}
+
+function hostToggleLeaderboardBroadcast() {
+  if (!hostRoomState) return;
+  db.ref('rooms/' + hostRoomCode).update({ broadcastLeaderboard: !hostRoomState.broadcastLeaderboard });
+}
+
+function hostShortenTimer(seconds) {
+  if (!hostRoomState || hostRoomState.phase !== 'question') return;
+  const idx = hostRoomState.questionIndex;
+  clearTimeout(hostQuestionTimer);
+  const startAt = hostRoomState.currentQuestion.startAt;
+  const elapsed = Math.max(0, (Date.now() - startAt) / 1000);
+  const newDuration = elapsed + seconds;
+  db.ref('rooms/' + hostRoomCode).update({ 'currentQuestion/duration': newDuration });
+  hostQuestionTimer = setTimeout(() => hostEndQuestion(idx), seconds * 1000 + 500);
+}
+
+function renderHostMgmtToggleHtml() {
+  return `<div class="center-text" style="margin-top:14px;">
+    <button class="small-btn" onclick="toggleHostMgmt()">${hostMgmtOpen ? '🔽 סגור ניהול משחק' : '⚙️ ניהול משחק'}</button>
+  </div>`;
+}
+
+function renderHostMgmtPanelHtml() {
+  if (!hostMgmtOpen || !hostRoomState) return '';
+  const idx = hostRoomState.questionIndex;
+  const players = hostRoomState.players || {};
+  const sorted = Object.values(players).sort((a, b) => (b.score || 0) - (a.score || 0));
+  const isQuestionPhase = hostRoomState.phase === 'question';
+  return `
+    <div class="card">
+      <div style="font-weight:800; margin-bottom:8px;">⚙️ ניהול משחק</div>
+      <div style="font-weight:700; margin-bottom:6px;">🏆 מי מוביל כרגע:</div>
+      <div style="margin-bottom:10px;">
+        ${sorted.map((p, i) => `<div>${i + 1}. ${p.name} - ${p.score || 0}</div>`).join('') || '<div class="muted">אין עדיין תוצאות</div>'}
+      </div>
+      <div class="center-text" style="margin-bottom:14px;">
+        ${(hostRoomState.phase === 'reveal' || hostRoomState.phase === 'lobby')
+          ? `<button class="small-btn" onclick="hostToggleLeaderboardBroadcast()">${hostRoomState.broadcastLeaderboard ? '🔽 הסתר מהשחקנים' : '📢 הראו לכל השחקנים מי מוביל'}</button>`
+          : `<div class="muted" style="font-size:.85em;">אפשר להראות לשחקנים מי מוביל רק בין שאלה לשאלה</div>`}
+      </div>
+      <div style="font-weight:700; margin-bottom:6px;">📋 קפצו לכל שאלה:</div>
+      <div style="display:flex; flex-wrap:wrap; gap:6px; margin-bottom:14px;">
+        ${hostQuestions.map((q, i) => `<button class="option-btn${i === idx ? ' selected' : ''}" style="padding:8px 12px; margin:0; font-size:.85em;" onclick="hostGoToQuestion(${i})">${i + 1}</button>`).join('')}
+      </div>
+      <div style="display:flex; flex-wrap:wrap; gap:8px; justify-content:center; margin-bottom:${isQuestionPhase ? '14px' : '0'};">
+        <button class="small-btn" ${idx <= 0 ? 'disabled' : ''} onclick="hostGoToQuestion(${idx - 1})">⏮️ שאלה קודמת</button>
+        <button class="small-btn" onclick="hostGoToQuestion(${idx + 1})">⏭️ דלג לשאלה הבאה</button>
+      </div>
+      ${isQuestionPhase ? `
+      <div style="font-weight:700; margin:10px 0 6px;">⏱️ קצרו את הזמן שנשאר:</div>
+      <div style="display:flex; flex-wrap:wrap; gap:8px; justify-content:center;">
+        <button class="small-btn" onclick="hostShortenTimer(5)">5 שניות</button>
+        <button class="small-btn" onclick="hostShortenTimer(10)">10 שניות</button>
+        <button class="small-btn" onclick="hostEndQuestion(${idx})">⏰ סיימו עכשיו</button>
+      </div>` : ''}
+    </div>
+  `;
 }
 
 function renderHostQuestion(content) {
@@ -1395,13 +1472,15 @@ function renderHostQuestion(content) {
     </div>
     <button class="small-btn" onclick="hostEndQuestion(${idx})">⏭️ סיימו לענות - לתוצאה</button>
     <button class="small-btn" onclick="hostStopGame()">🛑 עצור משחק</button>
+    ${renderHostMgmtToggleHtml()}
+    ${renderHostMgmtPanelHtml()}
   `;
   db.ref('rooms/' + hostRoomCode + '/answers/' + idx).on('value', snap => {
     const answers = snap.val() || {};
     const el = document.getElementById('host-answer-count');
     if (el) el.textContent = Object.keys(answers).length + ' ענו עד עכשיו';
   });
-  startHostCountdown(q.startAt, hostRoomState.duration);
+  startHostCountdown(q.startAt, q.duration || hostRoomState.duration);
 }
 
 let hostCountdownInterval = null;
@@ -1424,19 +1503,40 @@ function renderHostReveal(content) {
   const q = hostQuestions[idx];
   const players = hostRoomState.players || {};
   const sorted = Object.values(players).sort((a, b) => (b.score || 0) - (a.score || 0)).slice(0, 5);
+
+  const answers = (hostRoomState.answers && hostRoomState.answers[idx]) || {};
+  const qStartAt = (hostRoomState.currentQuestion && hostRoomState.currentQuestion.startAt) || 0;
+  const correctEntries = Object.entries(answers).filter(([, a]) => a.correct)
+    .sort((x, y) => (x[1].at || qStartAt) - (y[1].at || qStartAt));
+  const winnerPid = correctEntries.length ? correctEntries[0][0] : null;
+  const perQRows = Object.entries(players).map(([pid, p]) => {
+    const a = answers[pid];
+    return { name: p.name, pts: a ? (a.pointsEarned || 0) : 0, correct: a ? a.correct : null, isWinner: pid === winnerPid };
+  }).sort((x, y) => y.pts - x.pts);
+
   content.innerHTML = `
     <div class="progress-label center-text">התשובה הנכונה:</div>
     <div class="choices-grid" style="grid-template-columns: repeat(${gridColsFor(q.choices.length)}, 1fr);">
       ${q.choices.map((c, i) => `<div class="choice-btn choice-${i} ${i === q.correctIndex ? 'correct-answer' : ''}" style="cursor:default;">${c}</div>`).join('')}
     </div>
     <div class="card">
-      <div style="font-weight:700; margin-bottom:8px;">🏆 מובילים כרגע:</div>
+      <div style="font-weight:700; margin-bottom:8px;">📊 תוצאות השאלה הזו:</div>
+      <table class="leaderboard">
+        <tr><th>שם</th><th>תשובה</th><th>נקודות</th></tr>
+        ${perQRows.map(r => `<tr><td>${r.isWinner ? '🏆 ' : ''}${r.name}</td><td>${r.correct === null ? '—' : (r.correct ? '✅' : '❌')}</td><td>${r.pts}</td></tr>`).join('') || '<tr><td colspan="3" class="muted">אין תשובות</td></tr>'}
+      </table>
+      ${winnerPid ? `<div class="feedback-banner" style="font-size:1.05em; margin-top:8px;">🏆 המנצח/ת בשאלה הזו: ${players[winnerPid].name}!</div>` : '<div class="muted center-text" style="margin-top:8px;">אף אחד לא ענה נכון בשאלה הזו</div>'}
+    </div>
+    <div class="card">
+      <div style="font-weight:700; margin-bottom:8px;">🏆 מובילים כרגע (סה״כ):</div>
       ${sorted.map((p, i) => `<div>${i + 1}. ${p.name} - ${p.score || 0}</div>`).join('') || '<div class="muted">אין עדיין תוצאות</div>'}
     </div>
     <button class="big-btn green" onclick="hostAdvanceToQuestion(${idx + 1})">
       ${idx + 1 >= hostRoomState.totalQuestions ? '🏁 לתוצאות הסופיות' : '➡️ לשאלה הבאה'}
     </button>
     <button class="small-btn" onclick="hostStopGame()">🛑 עצור משחק</button>
+    ${renderHostMgmtToggleHtml()}
+    ${renderHostMgmtPanelHtml()}
   `;
 }
 
@@ -1556,12 +1656,27 @@ function listenPlayerRoom() {
 function renderPlayer() {
   const content = document.getElementById('player-content');
   const phase = playerRoomState.phase;
+  if (playerRoomState.broadcastLeaderboard && (phase === 'lobby' || phase === 'reveal')) { renderPlayerLeaderboardBroadcast(content); return; }
   if (phase === 'lobby') renderPlayerLobby(content);
   else if (phase === 'video') renderPlayerVideo(content);
   else if (phase === 'question') renderPlayerQuestion(content);
   else if (phase === 'reveal') renderPlayerReveal(content);
   else if (phase === 'finished') renderPlayerFinal(content);
   else if (phase === 'stopped') renderPlayerStopped(content);
+}
+
+function renderPlayerLeaderboardBroadcast(content) {
+  const players = playerRoomState.players || {};
+  const sorted = Object.values(players).sort((a, b) => (b.score || 0) - (a.score || 0));
+  const medals = ['🥇', '🥈', '🥉'];
+  content.innerHTML = `
+    <h2>🏆 מי מוביל עכשיו?</h2>
+    <table class="leaderboard">
+      <tr><th>מקום</th><th>שם</th><th>ניקוד</th></tr>
+      ${sorted.map((p, i) => `<tr><td>${medals[i] || (i + 1)}</td><td>${p.name}</td><td>${p.score || 0}</td></tr>`).join('') || '<tr><td colspan="3" class="muted">אין עדיין תוצאות</td></tr>'}
+    </table>
+    <div class="muted center-text" style="margin-top:10px;">המנחה מראה לכם את הטבלה...</div>
+  `;
 }
 
 function renderPlayerStopped(content) {
@@ -1624,7 +1739,7 @@ function renderPlayerQuestion(content) {
     b.onclick = () => submitAnswer(idx, i);
     grid.appendChild(b);
   });
-  startPlayerCountdown(q.startAt, playerRoomState.duration);
+  startPlayerCountdown(q.startAt, q.duration || playerRoomState.duration);
 }
 
 let playerCountdownInterval = null;
