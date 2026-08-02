@@ -40,7 +40,7 @@
   html, body {
     margin: 0; padding: 0; min-height: 100%;
     font-family: 'Assistant', 'Segoe UI', Arial, sans-serif;
-    font-size: 26px;
+    font-size: 20px;
     color: var(--text);
     user-select: none;
   }
@@ -55,38 +55,38 @@
 
   h1 {
     font-family: 'Suez One', 'Assistant', sans-serif;
-    font-size: 2.7em; font-weight: 400; margin: 6px 0 4px; text-align: center;
+    font-size: 2.3em; font-weight: 400; margin: 6px 0 4px; text-align: center;
     color: var(--text);
     letter-spacing: .01em;
   }
   h1 .spark{ color: var(--accent); }
-  .tagline{ text-align:center; color:var(--text-soft); font-size:1em; margin:0 0 24px; }
+  .tagline{ text-align:center; color:var(--text-soft); font-size:.8em; margin:0 0 22px; }
   h2 { font-family: 'Suez One', 'Assistant', sans-serif; font-weight:400; color: var(--text); margin: 6px 0 16px; text-align:center; }
   p, span, div { color: inherit; }
 
-  .tile-grid{ display:grid; grid-template-columns:1fr 1fr; gap:16px; width:100%; max-width:600px; margin-bottom:10px; }
+  .tile-grid{ display:grid; grid-template-columns:1fr 1fr; gap:12px; width:100%; max-width:440px; margin-bottom:8px; }
   .tile{
-    font-family: 'Assistant', sans-serif; font-size:1.1em; text-align:right; border:none; cursor:pointer;
-    border-radius:24px; padding:28px 18px; background:var(--panel);
+    font-family: 'Assistant', sans-serif; font-size:1em; text-align:right; border:none; cursor:pointer;
+    border-radius:20px; padding:20px 14px; background:var(--panel);
     box-shadow: inset 0 0 0 1.5px var(--panel-line), 0 2px 0 hsl(var(--shadow) / .05);
-    display:flex; flex-direction:column; gap:14px; align-items:flex-end;
+    display:flex; flex-direction:column; gap:10px; align-items:flex-end;
     transition: transform .08s;
   }
   .tile:active{ transform: translateY(2px); }
-  .tile .tile-ico{ font-size:38px; }
-  .tile .tile-lbl{ font-weight:800; font-size:1em; color:var(--text); }
+  .tile .tile-ico{ font-size:30px; }
+  .tile .tile-lbl{ font-weight:800; font-size:.85em; color:var(--text); }
   .tile.solo{ box-shadow: inset 0 0 0 2px var(--accent2), 0 2px 0 hsl(var(--shadow) / .05); }
   .tile.host{ box-shadow: inset 0 0 0 2px var(--accent), 0 2px 0 hsl(var(--shadow) / .05); }
   .admin-link{
-    display:block; margin:22px auto 0; background:none; border:none; cursor:pointer;
-    color:var(--text-soft); font-family:'Assistant',sans-serif; font-weight:700; font-size:1em;
+    display:block; margin:18px auto 0; background:none; border:none; cursor:pointer;
+    color:var(--text-soft); font-family:'Assistant',sans-serif; font-weight:700; font-size:.75em;
   }
 
   .big-btn {
     font-family: inherit;
-    font-size: 1.2em;
+    font-size: 1.05em;
     font-weight: 800;
-    padding: 22px 34px;
+    padding: 18px 30px;
     margin: 10px;
     border: none;
     border-radius: 18px;
@@ -107,9 +107,9 @@
 
   .small-btn {
     font-family: inherit;
-    font-size: 1.1em;
+    font-size: .95em;
     font-weight: 700;
-    padding: 14px 24px;
+    padding: 11px 20px;
     margin: 6px;
     border: none;
     border-radius: 14px;
@@ -123,18 +123,18 @@
   .card {
     background: var(--panel);
     border-radius: 20px;
-    padding: 26px;
+    padding: 22px;
     max-width: 520px;
     width: 100%;
     margin: 10px 0;
     box-shadow: inset 0 0 0 1.5px var(--panel-line), 0 4px 0 hsl(var(--shadow) / .04);
-    font-size: 1.1em;
+    font-size: 1em;
     color: var(--text);
   }
 
   input[type=text] {
-    padding: 16px 18px;
-    font-size: 1.2em;
+    padding: 13px 15px;
+    font-size: 1.05em;
     font-family: inherit;
     border-radius: 14px;
     border: none;
@@ -147,8 +147,8 @@
     margin: 10px 0;
   }
   textarea, input[type=time] {
-    padding: 14px 16px;
-    font-size: 1.1em;
+    padding: 12px 14px;
+    font-size: 1em;
     font-family: inherit;
     border-radius: 14px;
     border: none;
@@ -178,7 +178,7 @@
     gap: 6px;
   }
   .admin-sidebar .option-btn {
-    width: 100%; margin: 0; text-align: right; font-size: .85em; padding: 14px 16px;
+    width: 100%; margin: 0; text-align: right; font-size: .72em; padding: 11px 13px;
   }
   .admin-sidebar .option-btn.selected {
     box-shadow: inset 0 0 0 2px var(--accent2); background: color-mix(in srgb, var(--accent2) 10%, var(--panel));
@@ -193,16 +193,16 @@
   }
   .option-btn {
     font-family: inherit;
-    padding: 15px 22px; margin: 6px; border-radius: 14px; border: none;
-    background: var(--panel); cursor: pointer; font-size: 1.1em; font-weight: 700;
+    padding: 12px 18px; margin: 6px; border-radius: 14px; border: none;
+    background: var(--panel); cursor: pointer; font-size: .95em; font-weight: 700;
     box-shadow: inset 0 0 0 1.5px var(--panel-line);
     color: var(--text);
   }
   .option-btn.selected { box-shadow: inset 0 0 0 2px var(--accent2); background: color-mix(in srgb, var(--accent2) 10%, var(--panel)); }
 
   /* progress + timer */
-  .progress-label { color: var(--text); font-weight: 700; font-size: 1.2em; margin-bottom: 4px; }
-  .timer-num{ font-family:'Assistant',sans-serif; font-weight:800; font-variant-numeric:tabular-nums; letter-spacing:.02em; color:var(--text); text-align:center; margin-bottom:8px; font-size:1.3em; }
+  .progress-label { color: var(--text); font-weight: 700; font-size: 1em; margin-bottom: 4px; }
+  .timer-num{ font-family:'Assistant',sans-serif; font-weight:800; font-variant-numeric:tabular-nums; letter-spacing:.02em; color:var(--text); text-align:center; margin-bottom:8px; font-size:1.05em; }
   .timer-bar-outer { width: 100%; max-width: 440px; height: 12px; background: var(--panel-line); border-radius: 10px; overflow: hidden; margin-bottom: 16px; }
   .timer-bar-inner { height: 100%; background: var(--accent); width: 100%; transition: width .25s linear; }
 
@@ -249,11 +249,11 @@
     background: var(--panel);
     border: none;
     border-radius: 24px;
-    padding: 30px 24px;
+    padding: 24px 20px;
     max-width: 560px;
     width: 100%;
     text-align: center;
-    font-size: 1.55em;
+    font-size: 1.35em;
     line-height: 1.35;
     font-weight: 400;
     color: var(--text);
@@ -271,7 +271,7 @@
   }
   .choice-btn {
     font-family: inherit;
-    font-size: 1.05em;
+    font-size: .9em;
     font-weight: 700;
     color: var(--text);
     background: var(--panel);
@@ -299,16 +299,16 @@
   .choice-btn.wrong-picked { box-shadow: inset 0 0 0 2.5px var(--bad); background: color-mix(in srgb, var(--bad) 14%, var(--panel)); }
   @media (prefers-reduced-motion: reduce){ .choice-btn.correct-answer{ animation:none; } }
 
-  .feedback-banner { font-size: 1.6em; font-weight: 800; margin: 14px 0; text-align: center; color: var(--text); }
+  .feedback-banner { font-size: 1.3em; font-weight: 800; margin: 14px 0; text-align: center; color: var(--text); }
 
-  table.leaderboard { width: 100%; max-width: 500px; font-size: 1.1em; border-collapse: collapse; background: var(--panel); border-radius: 16px; overflow: hidden; box-shadow: inset 0 0 0 1.5px var(--panel-line); }
+  table.leaderboard { width: 100%; max-width: 500px; font-size: .95em; border-collapse: collapse; background: var(--panel); border-radius: 16px; overflow: hidden; box-shadow: inset 0 0 0 1.5px var(--panel-line); }
   table.leaderboard th, table.leaderboard td { padding: 13px 15px; text-align: right; font-variant-numeric: tabular-nums; }
   table.leaderboard tr:nth-child(even) { background: color-mix(in srgb, var(--accent2) 5%, transparent); }
   table.leaderboard th { background: color-mix(in srgb, var(--accent2) 18%, var(--panel)); color: var(--text); font-size: .85em; }
 
   .room-code {
     font-family: 'Assistant', sans-serif;
-    font-size: 2.6em;
+    font-size: 2.2em;
     font-weight: 800;
     letter-spacing: .15em;
     font-variant-numeric: tabular-nums;
