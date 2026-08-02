@@ -857,6 +857,7 @@ function pickNameAndJoin(code, name) {
   playerRoomCode = code;
   playerId = getPlayerId();
   playerAnsweredIndex = -1;
+  playerAnsweredStartAt = null;
   const ref = db.ref('rooms/' + code + '/players/' + playerId);
   ref.set({ name, score: 0, joinedAt: firebase.database.ServerValue.TIMESTAMP });
   ref.onDisconnect().remove();
@@ -1295,6 +1296,8 @@ function hostAdvanceToQuestion(idx) {
       phase: 'video',
       questionIndex: idx,
       broadcastLeaderboard: false,
+      paused: false,
+      pausedAt: null,
       currentQuestion: {
         text: q.text,
         choices: q.choices,
@@ -1312,6 +1315,8 @@ function hostAdvanceToQuestion(idx) {
     phase: 'question',
     questionIndex: idx,
     broadcastLeaderboard: false,
+    paused: false,
+    pausedAt: null,
     currentQuestion: {
       text: q.text,
       choices: q.choices,
@@ -1325,6 +1330,15 @@ function hostAdvanceToQuestion(idx) {
   updates['questionMeta/' + idx] = { text: q.text, startAt: startAt };
   db.ref('rooms/' + hostRoomCode).update(updates);
   hostQuestionTimer = setTimeout(() => hostEndQuestion(idx), hostSettings.duration * 1000 + 500);
+}
+
+function hostRestartQuestion() {
+  if (!hostRoomState) return;
+  const idx = hostRoomState.questionIndex;
+  clearTimeout(hostQuestionTimer);
+  db.ref('rooms/' + hostRoomCode + '/answers/' + idx).remove().then(() => {
+    hostAdvanceToQuestion(idx);
+  });
 }
 
 function hostBeginQuestionAfterVideo() {
@@ -1401,7 +1415,8 @@ function hostToggleLeaderboardBroadcast() {
 }
 
 function hostShortenTimer(seconds) {
-  if (!hostRoomState || hostRoomState.phase !== 'question') return;
+  if (!hostRoomState || hostRoomState.phase !== 'question' || hostRoomState.paused) return;
+  if (!seconds || seconds <= 0) return;
   const idx = hostRoomState.questionIndex;
   clearTimeout(hostQuestionTimer);
   const startAt = hostRoomState.currentQuestion.startAt;
@@ -1409,6 +1424,36 @@ function hostShortenTimer(seconds) {
   const newDuration = elapsed + seconds;
   db.ref('rooms/' + hostRoomCode).update({ 'currentQuestion/duration': newDuration });
   hostQuestionTimer = setTimeout(() => hostEndQuestion(idx), seconds * 1000 + 500);
+}
+
+function applyCustomShorten() {
+  const input = document.getElementById('host-shorten-custom');
+  if (!input) return;
+  const val = parseInt(input.value, 10);
+  if (!val || val <= 0 || val > 600) { alert('תכניסו מספר שניות בין 1 ל-600'); return; }
+  hostShortenTimer(val);
+  input.value = '';
+}
+
+function hostPauseGame() {
+  if (!hostRoomState || hostRoomState.phase !== 'question' || hostRoomState.paused) return;
+  clearTimeout(hostQuestionTimer);
+  db.ref('rooms/' + hostRoomCode).update({ paused: true, pausedAt: Date.now() });
+}
+
+function hostResumeGame() {
+  if (!hostRoomState || !hostRoomState.paused) return;
+  const idx = hostRoomState.questionIndex;
+  const q = hostRoomState.currentQuestion;
+  const duration = q.duration || hostRoomState.duration;
+  const pausedAt = hostRoomState.pausedAt || Date.now();
+  const pauseDurationMs = Math.max(0, Date.now() - pausedAt);
+  const newStartAt = q.startAt + pauseDurationMs;
+  const elapsedAtPause = Math.max(0, (pausedAt - q.startAt) / 1000);
+  const remaining = Math.max(0.1, duration - elapsedAtPause);
+  db.ref('rooms/' + hostRoomCode).update({ paused: false, pausedAt: null, 'currentQuestion/startAt': newStartAt }).then(() => {
+    hostQuestionTimer = setTimeout(() => hostEndQuestion(idx), remaining * 1000 + 500);
+  });
 }
 
 function renderHostMgmtToggleHtml() {
@@ -1443,13 +1488,17 @@ function renderHostMgmtPanelHtml() {
         <button class="small-btn" ${idx <= 0 ? 'disabled' : ''} onclick="hostGoToQuestion(${idx - 1})">⏮️ שאלה קודמת</button>
         <button class="small-btn" onclick="hostGoToQuestion(${idx + 1})">⏭️ דלג לשאלה הבאה</button>
       </div>
-      ${isQuestionPhase ? `
-      <div style="font-weight:700; margin:10px 0 6px;">⏱️ קצרו את הזמן שנשאר:</div>
-      <div style="display:flex; flex-wrap:wrap; gap:8px; justify-content:center;">
+      ${isQuestionPhase ? (hostRoomState.paused
+        ? `<div class="muted center-text" style="margin:10px 0;">⏸️ המשחק מושהה - אי אפשר לקצר זמן כרגע</div>`
+        : `
+      <div style="font-weight:700; margin:10px 0 6px;">⏱️ קצרו או קבעו זמן מדויק שנשאר:</div>
+      <div style="display:flex; flex-wrap:wrap; gap:8px; justify-content:center; align-items:center;">
         <button class="small-btn" onclick="hostShortenTimer(5)">5 שניות</button>
         <button class="small-btn" onclick="hostShortenTimer(10)">10 שניות</button>
+        <input type="text" id="host-shorten-custom" inputmode="numeric" maxlength="3" placeholder="שניות" style="width:90px; text-align:center; margin:6px;">
+        <button class="small-btn" onclick="applyCustomShorten()">✓ קבע זמן</button>
         <button class="small-btn" onclick="hostEndQuestion(${idx})">⏰ סיימו עכשיו</button>
-      </div>` : ''}
+      </div>`) : ''}
     </div>
   `;
 }
@@ -1457,9 +1506,12 @@ function renderHostMgmtPanelHtml() {
 function renderHostQuestion(content) {
   const q = hostRoomState.currentQuestion;
   const idx = hostRoomState.questionIndex;
+  const paused = !!hostRoomState.paused;
+  const duration = q.duration || hostRoomState.duration;
   content.innerHTML = `
     <div class="progress-label center-text">שאלה ${idx + 1} מתוך ${hostRoomState.totalQuestions}</div>
     ${q.sample ? '<div class="feedback-banner" style="font-size:.9em; background:#fff3cd; color:#7a5b00;">🎯 שאלת דוגמה - לא נספרת בניקוד</div>' : ''}
+    ${paused ? '<div class="feedback-banner" style="font-size:1em;">⏸️ המשחק מושהה</div>' : ''}
     <div class="timer-bar-outer"><div class="timer-bar-inner" id="host-timer-bar"></div></div>
     <div class="timer-num" id="host-timer-text"></div>
     ${questionMediaHtml(q)}
@@ -1470,6 +1522,8 @@ function renderHostQuestion(content) {
     <div class="card center-text" style="margin-top:18px;">
       <div id="host-answer-count" style="font-weight:700;">0 ענו עד עכשיו</div>
     </div>
+    <button class="small-btn" onclick="${paused ? 'hostResumeGame()' : 'hostPauseGame()'}">${paused ? '▶️ המשך משחק' : '⏸️ השהה משחק'}</button>
+    <button class="small-btn" onclick="hostRestartQuestion()">🔁 התחילו את השאלה מחדש</button>
     <button class="small-btn" onclick="hostEndQuestion(${idx})">⏭️ סיימו לענות - לתוצאה</button>
     <button class="small-btn" onclick="hostStopGame()">🛑 עצור משחק</button>
     ${renderHostMgmtToggleHtml()}
@@ -1480,7 +1534,17 @@ function renderHostQuestion(content) {
     const el = document.getElementById('host-answer-count');
     if (el) el.textContent = Object.keys(answers).length + ' ענו עד עכשיו';
   });
-  startHostCountdown(q.startAt, q.duration || hostRoomState.duration);
+  if (paused) {
+    clearInterval(hostCountdownInterval);
+    const elapsedAtPause = Math.max(0, ((hostRoomState.pausedAt || Date.now()) - q.startAt) / 1000);
+    const remaining = Math.max(0, duration - elapsedAtPause);
+    const bar = document.getElementById('host-timer-bar');
+    const text = document.getElementById('host-timer-text');
+    if (bar) bar.style.width = (remaining / duration * 100) + '%';
+    if (text) text.textContent = '⏸️ ' + remaining.toFixed(1) + ' שניות (מושהה)';
+  } else {
+    startHostCountdown(q.startAt, duration);
+  }
 }
 
 let hostCountdownInterval = null;
@@ -1608,6 +1672,7 @@ let playerRoomCode = null;
 let playerId = null;
 let playerRoomState = null;
 let playerAnsweredIndex = -1;
+let playerAnsweredStartAt = null;
 
 function goJoinSetup() {
   if (!firebaseReady) { showScreen('not-configured-screen'); return; }
@@ -1635,6 +1700,7 @@ function joinRoom() {
     playerRoomCode = code;
     playerId = getPlayerId();
     playerAnsweredIndex = -1;
+    playerAnsweredStartAt = null;
     const ref = db.ref('rooms/' + code + '/players/' + playerId);
     ref.set({ name, score: 0, joinedAt: firebase.database.ServerValue.TIMESTAMP });
     ref.onDisconnect().remove();
@@ -1712,7 +1778,9 @@ function renderPlayerVideo(content) {
 function renderPlayerQuestion(content) {
   const idx = playerRoomState.questionIndex;
   const q = playerRoomState.currentQuestion;
-  if (playerAnsweredIndex === idx) {
+  const paused = !!playerRoomState.paused;
+  const duration = q.duration || playerRoomState.duration;
+  if (playerAnsweredIndex === idx && playerAnsweredStartAt === q.startAt) {
     content.innerHTML = `
       <div class="progress-label center-text">שאלה ${idx + 1} מתוך ${playerRoomState.totalQuestions}</div>
       <div class="card center-text">
@@ -1725,6 +1793,7 @@ function renderPlayerQuestion(content) {
   content.innerHTML = `
     <div class="progress-label center-text">שאלה ${idx + 1} מתוך ${playerRoomState.totalQuestions}</div>
     ${q.sample ? '<div class="feedback-banner" style="font-size:.9em; background:#fff3cd; color:#7a5b00;">🎯 שאלת דוגמה - לא נספרת בניקוד</div>' : ''}
+    ${paused ? '<div class="feedback-banner" style="font-size:1em;">⏸️ המנחה השהה את המשחק</div>' : ''}
     <div class="timer-bar-outer"><div class="timer-bar-inner" id="player-timer-bar"></div></div>
     <div class="timer-num" id="player-timer-text"></div>
     ${questionMediaHtml(q)}
@@ -1736,10 +1805,22 @@ function renderPlayerQuestion(content) {
     const b = document.createElement('button');
     b.className = 'choice-btn choice-' + i;
     b.textContent = c;
+    b.disabled = paused;
+    if (paused) b.style.opacity = '.5';
     b.onclick = () => submitAnswer(idx, i);
     grid.appendChild(b);
   });
-  startPlayerCountdown(q.startAt, q.duration || playerRoomState.duration);
+  if (paused) {
+    clearInterval(playerCountdownInterval);
+    const elapsedAtPause = Math.max(0, ((playerRoomState.pausedAt || Date.now()) - q.startAt) / 1000);
+    const remaining = Math.max(0, duration - elapsedAtPause);
+    const bar = document.getElementById('player-timer-bar');
+    const text = document.getElementById('player-timer-text');
+    if (bar) bar.style.width = (remaining / duration * 100) + '%';
+    if (text) text.textContent = '⏸️ ' + remaining.toFixed(1) + ' שניות (מושהה)';
+  } else {
+    startPlayerCountdown(q.startAt, duration);
+  }
 }
 
 let playerCountdownInterval = null;
@@ -1759,6 +1840,7 @@ function startPlayerCountdown(startAt, duration) {
 
 function submitAnswer(idx, choiceIndex) {
   playerAnsweredIndex = idx;
+  playerAnsweredStartAt = playerRoomState.currentQuestion.startAt;
   db.ref('rooms/' + playerRoomCode + '/answers/' + idx + '/' + playerId).set({
     choiceIndex,
     at: firebase.database.ServerValue.TIMESTAMP
