@@ -1985,7 +1985,8 @@ function clearQuestionImageFile() {
   if (zone) zone.outerHTML = renderQuestionImagePickerHtml();
 }
 
-function renderAddQuestionFormHtml() {
+function renderAddQuestionFormHtml(saveFn) {
+  saveFn = saveFn || 'addCustomQuestion';
   const n = newQuestionChoiceCount;
   return `
     <div class="card">
@@ -2009,7 +2010,7 @@ function renderAddQuestionFormHtml() {
           </div>
         `).join('')}
       </div>
-      <button class="big-btn green" onclick="addCustomQuestion()">💾 שמור שאלה</button>
+      <button class="big-btn green" onclick="${saveFn}()">💾 שמור שאלה</button>
       <div id="add-q-msg" class="feedback-banner" style="font-size:1em; display:none;"></div>
     </div>
   `;
@@ -2139,6 +2140,132 @@ function setQuestionSourceMode(v) {
   localStorage.setItem(QUESTION_SOURCE_KEY, v);
 }
 
+/* ===================== קטגוריות שאלות מותאמות (מקומי / גלובלי) ===================== */
+const LOCAL_CATEGORIES_KEY = 'trivia_local_categories';
+function getLocalCategories() {
+  try { return JSON.parse(localStorage.getItem(LOCAL_CATEGORIES_KEY)) || {}; } catch (e) { return {}; }
+}
+function saveLocalCategories(obj) {
+  localStorage.setItem(LOCAL_CATEGORIES_KEY, JSON.stringify(obj));
+}
+
+let globalCategoriesCache = {};
+let globalCategoriesListenerStarted = false;
+function initGlobalCategoriesListener() {
+  if (!firebaseReady || globalCategoriesListenerStarted) return;
+  globalCategoriesListenerStarted = true;
+  db.ref('categories').on('value', snap => {
+    globalCategoriesCache = snap.val() || {};
+    if (adminTab === 'categories') renderAdminTab();
+  });
+}
+
+function getAllCategoriesList() {
+  initGlobalCategoriesListener();
+  const local = getLocalCategories();
+  const list = Object.keys(local).map(id => ({ id, name: local[id].name, scope: 'local', questions: local[id].questions || [] }));
+  Object.keys(globalCategoriesCache).forEach(id => {
+    const c = globalCategoriesCache[id] || {};
+    list.push({ id, name: c.name, scope: 'global', questions: c.questions || [] });
+  });
+  return list;
+}
+
+function getCategoryById(id) {
+  return getAllCategoriesList().find(c => c.id === id) || null;
+}
+
+function getAllCategoryQuestions() {
+  return getAllCategoriesList().reduce((acc, c) => acc.concat(c.questions || []), []);
+}
+
+function createCategory(name, scope) {
+  const id = 'cat_' + Date.now().toString(36) + Math.random().toString(36).slice(2, 6);
+  if (scope === 'global') {
+    if (!firebaseReady) { alert('אין חיבור אונליין - אי אפשר ליצור קטגוריה שכולם רואים'); return; }
+    db.ref('categories/' + id).set({ name, questions: [] });
+  } else {
+    const local = getLocalCategories();
+    local[id] = { name, questions: [] };
+    saveLocalCategories(local);
+  }
+  openCategoryId = id;
+  renderAdminTab();
+}
+
+function deleteCategory(id, scope) {
+  if (!confirm('למחוק את הקטגוריה הזו וכל השאלות שבה?')) return;
+  if (scope === 'global') {
+    db.ref('categories/' + id).remove();
+  } else {
+    const local = getLocalCategories();
+    delete local[id];
+    saveLocalCategories(local);
+  }
+  if (openCategoryId === id) openCategoryId = null;
+  renderAdminTab();
+}
+
+function addQuestionToOpenCategory() {
+  const cat = getCategoryById(openCategoryId);
+  if (!cat) return;
+  const text = document.getElementById('new-q-text').value.trim();
+  const imageUrl = document.getElementById('new-q-image').value.trim();
+  const image = newQuestionImageData || imageUrl;
+  const video = document.getElementById('new-q-video').value.trim();
+  const n = newQuestionChoiceCount;
+  const choices = Array.from({ length: n }, (_, i) => document.getElementById('new-q-choice-' + i).value.trim());
+  const correctRadio = document.querySelector('input[name="new-q-correct"]:checked');
+  const msg = document.getElementById('add-q-msg');
+  if (!text || choices.some(c => !c) || !correctRadio) {
+    msg.style.display = 'block';
+    msg.style.color = '#ff5757';
+    msg.textContent = `❌ צריך למלא שאלה וגם את כל ${n} התשובות`;
+    return;
+  }
+  const correct = parseInt(correctRadio.value, 10);
+  const newQ = { q: text, choices, correct };
+  if (image) newQ.image = image;
+  if (video) newQ.video = video;
+  const questions = (cat.questions || []).concat([newQ]);
+  if (cat.scope === 'global') {
+    db.ref('categories/' + cat.id + '/questions').set(questions);
+  } else {
+    const local = getLocalCategories();
+    local[cat.id].questions = questions;
+    saveLocalCategories(local);
+  }
+  newQuestionImageData = null;
+  renderAdminTab();
+  const newMsg = document.getElementById('add-q-msg');
+  if (newMsg) {
+    newMsg.style.display = 'block';
+    newMsg.style.color = '#38c172';
+    newMsg.textContent = '✅ השאלה נשמרה!';
+  }
+}
+
+function deleteQuestionFromCategory(catId, scope, qIndex) {
+  const cat = getCategoryById(catId);
+  if (!cat) return;
+  const questions = (cat.questions || []).slice();
+  questions.splice(qIndex, 1);
+  if (scope === 'global') {
+    db.ref('categories/' + catId + '/questions').set(questions);
+  } else {
+    const local = getLocalCategories();
+    local[catId].questions = questions;
+    saveLocalCategories(local);
+  }
+  renderAdminTab();
+}
+
+let expandedQuestionKeys = new Set();
+function toggleQuestionExpand(key) {
+  if (expandedQuestionKeys.has(key)) expandedQuestionKeys.delete(key); else expandedQuestionKeys.add(key);
+  renderAdminTab();
+}
+
 function getCombinedBank() {
   const disabled = getDisabledBuiltinIndices();
   const activeBuiltin = QUESTION_BANK.filter((_, i) => !disabled.includes(i));
@@ -2151,7 +2278,11 @@ function getCombinedBank() {
   if (source === 'haredi') return activeHaredi;
   if (source === 'geo') return activeGeo;
   if (source === 'custom') return getCustomQuestions();
-  return activeBuiltin.concat(activeHaredi).concat(activeGeo).concat(getCustomQuestions());
+  if (source.indexOf('cat:') === 0) {
+    const cat = getCategoryById(source.slice(4));
+    return cat ? cat.questions : [];
+  }
+  return activeBuiltin.concat(activeHaredi).concat(activeGeo).concat(getCustomQuestions()).concat(getAllCategoryQuestions());
 }
 
 const MANUAL_SELECTION_KEY = 'trivia_manual_selection';
@@ -2251,6 +2382,8 @@ function afterPinSuccess() {
 }
 
 let adminTab = 'add';
+let openCategoryId = null;
+let newCategoryScope = 'local';
 function openAdminPanel() {
   adminTab = 'add';
   showScreen('admin-panel-screen');
@@ -2269,6 +2402,7 @@ function renderAdminPanel() {
         <button class="option-btn ${adminTab === 'builtin' ? 'selected' : ''}" onclick="setAdminTab('builtin')">📚 שאלות המערכת</button>
         <button class="option-btn ${adminTab === 'haredi' ? 'selected' : ''}" onclick="setAdminTab('haredi')">📖 שאלות חרדיות</button>
         <button class="option-btn ${adminTab === 'geo' ? 'selected' : ''}" onclick="setAdminTab('geo')">🗺️ גיאוגרפיה של ישראל</button>
+        <button class="option-btn ${adminTab === 'categories' ? 'selected' : ''}" onclick="setAdminTab('categories')">🗂️ קטגוריות שלי</button>
         <button class="option-btn ${adminTab === 'scores' ? 'selected' : ''}" onclick="setAdminTab('scores')">🏆 ניקודים</button>
         <button class="option-btn ${adminTab === 'count' ? 'selected' : ''}" onclick="setAdminTab('count')">🔢 מספר שאלות</button>
         <button class="option-btn ${adminTab === 'source' ? 'selected' : ''}" onclick="setAdminTab('source')">🔀 מקור שאלות</button>
@@ -2353,13 +2487,22 @@ function renderAdminTab() {
         </div>
       ` : ''}
       <div class="card">
-        <p style="color:#555;">אלה השאלות שכבר קיימות במשחק. אפשר לבטל סימון כדי שהן לא יופיעו (בלי למחוק אותן):</p>
-        ${QUESTION_BANK.map((q, i) => `
-          <div style="display:flex; align-items:center; gap:8px; border-bottom:1px solid #eee; padding:8px 0;">
-            <input type="checkbox" id="builtin-cb-${i}" ${disabled.includes(i) ? '' : 'checked'} onchange="toggleBuiltinQuestion(${i}, this.checked)">
-            <label for="builtin-cb-${i}" style="flex:1;">${q.q}</label>
+        <p style="color:#555;">אלה השאלות שכבר קיימות במשחק. לוחצים על שאלה כדי לראות את התשובות שלה. אפשר לבטל סימון כדי שהן לא יופיעו (בלי למחוק אותן):</p>
+        ${QUESTION_BANK.map((q, i) => {
+          const key = 'builtin-' + i;
+          const expanded = expandedQuestionKeys.has(key);
+          return `
+          <div style="border-bottom:1px solid #eee; padding:8px 0;">
+            <div style="display:flex; align-items:center; gap:8px;">
+              <input type="checkbox" id="builtin-cb-${i}" ${disabled.includes(i) ? '' : 'checked'} onchange="toggleBuiltinQuestion(${i}, this.checked)">
+              <span style="flex:1; cursor:pointer;" onclick="toggleQuestionExpand('${key}')">${q.q} ${expanded ? '▲' : '▼'}</span>
+            </div>
+            ${expanded ? `<div style="margin-top:6px; margin-right:28px; color:#555; font-size:.9em;">
+              ${q.choices.map((c, ci) => `<div>${ci === q.correct ? '✅' : '▫️'} ${c}</div>`).join('')}
+            </div>` : ''}
           </div>
-        `).join('')}
+        `;
+        }).join('')}
       </div>
     `;
     renderNewQuestionCountOptions();
@@ -2367,28 +2510,107 @@ function renderAdminTab() {
     const disabledH = getDisabledHarediIndices();
     el.innerHTML = `
       <div class="card">
-        <p style="color:#555;">שאלות בסגנון חרדי - תורה, חגים, הלכה וגדולי ישראל. אפשר לבטל סימון כדי שהן לא יופיעו (בלי למחוק אותן):</p>
-        ${QUESTION_BANK_HAREDI.map((q, i) => `
-          <div style="display:flex; align-items:center; gap:8px; border-bottom:1px solid #eee; padding:8px 0;">
-            <input type="checkbox" id="haredi-cb-${i}" ${disabledH.includes(i) ? '' : 'checked'} onchange="toggleHarediQuestion(${i}, this.checked)">
-            <label for="haredi-cb-${i}" style="flex:1;">${q.q}</label>
+        <p style="color:#555;">שאלות בסגנון חרדי - תורה, חגים, הלכה וגדולי ישראל. לוחצים על שאלה כדי לראות את התשובות שלה. אפשר לבטל סימון כדי שהן לא יופיעו (בלי למחוק אותן):</p>
+        ${QUESTION_BANK_HAREDI.map((q, i) => {
+          const key = 'haredi-' + i;
+          const expanded = expandedQuestionKeys.has(key);
+          return `
+          <div style="border-bottom:1px solid #eee; padding:8px 0;">
+            <div style="display:flex; align-items:center; gap:8px;">
+              <input type="checkbox" id="haredi-cb-${i}" ${disabledH.includes(i) ? '' : 'checked'} onchange="toggleHarediQuestion(${i}, this.checked)">
+              <span style="flex:1; cursor:pointer;" onclick="toggleQuestionExpand('${key}')">${q.q} ${expanded ? '▲' : '▼'}</span>
+            </div>
+            ${expanded ? `<div style="margin-top:6px; margin-right:28px; color:#555; font-size:.9em;">
+              ${q.choices.map((c, ci) => `<div>${ci === q.correct ? '✅' : '▫️'} ${c}</div>`).join('')}
+            </div>` : ''}
           </div>
-        `).join('')}
+        `;
+        }).join('')}
       </div>
     `;
   } else if (adminTab === 'geo') {
     const disabledG = getDisabledGeoIndices();
     el.innerHTML = `
       <div class="card">
-        <p style="color:#555;">שאלות גיאוגרפיה על ישראל - ערים, ימים, הרים ועוד. אפשר לבטל סימון כדי שהן לא יופיעו (בלי למחוק אותן):</p>
-        ${QUESTION_BANK_GEO_ISRAEL.map((q, i) => `
-          <div style="display:flex; align-items:center; gap:8px; border-bottom:1px solid #eee; padding:8px 0;">
-            <input type="checkbox" id="geo-cb-${i}" ${disabledG.includes(i) ? '' : 'checked'} onchange="toggleGeoQuestion(${i}, this.checked)">
-            <label for="geo-cb-${i}" style="flex:1;">${q.q}</label>
+        <p style="color:#555;">שאלות גיאוגרפיה על ישראל - ערים, ימים, הרים ועוד. לוחצים על שאלה כדי לראות את התשובות שלה. אפשר לבטל סימון כדי שהן לא יופיעו (בלי למחוק אותן):</p>
+        ${QUESTION_BANK_GEO_ISRAEL.map((q, i) => {
+          const key = 'geo-' + i;
+          const expanded = expandedQuestionKeys.has(key);
+          return `
+          <div style="border-bottom:1px solid #eee; padding:8px 0;">
+            <div style="display:flex; align-items:center; gap:8px;">
+              <input type="checkbox" id="geo-cb-${i}" ${disabledG.includes(i) ? '' : 'checked'} onchange="toggleGeoQuestion(${i}, this.checked)">
+              <span style="flex:1; cursor:pointer;" onclick="toggleQuestionExpand('${key}')">${q.q} ${expanded ? '▲' : '▼'}</span>
+            </div>
+            ${expanded ? `<div style="margin-top:6px; margin-right:28px; color:#555; font-size:.9em;">
+              ${q.choices.map((c, ci) => `<div>${ci === q.correct ? '✅' : '▫️'} ${c}</div>`).join('')}
+            </div>` : ''}
           </div>
-        `).join('')}
+        `;
+        }).join('')}
       </div>
     `;
+  } else if (adminTab === 'categories') {
+    if (openCategoryId) {
+      const cat = getCategoryById(openCategoryId);
+      if (!cat) {
+        openCategoryId = null;
+        renderAdminTab();
+        return;
+      }
+      el.innerHTML = `
+        <button class="small-btn" onclick="openCategoryId=null; renderAdminTab();">⬅️ כל הקטגוריות</button>
+        <div class="card">
+          <div style="font-weight:800; font-size:1.1em;">${cat.scope === 'global' ? '🌐' : '💻'} ${cat.name}</div>
+          <div class="muted" style="font-size:.85em;">${cat.scope === 'global' ? 'קטגוריה גלובלית - כולם רואים אותה בכל מחשב' : 'קטגוריה מקומית - רק במחשב הזה'}</div>
+          <button class="small-btn" onclick="deleteCategory('${cat.id}','${cat.scope}')">🗑️ מחק קטגוריה</button>
+        </div>
+        ${renderAddQuestionFormHtml('addQuestionToOpenCategory')}
+        <div class="card">
+          <div style="font-weight:700; margin-bottom:8px;">השאלות בקטגוריה הזו:</div>
+          ${cat.questions.length === 0 ? '<p style="color:#555;">עוד אין שאלות בקטגוריה הזו.</p>' : cat.questions.map((q, i) => {
+            const key = 'cat-' + cat.id + '-' + i;
+            const expanded = expandedQuestionKeys.has(key);
+            return `
+            <div style="border-bottom:1px solid #eee; padding:10px 0;">
+              <div style="display:flex; align-items:center; gap:8px;">
+                <span style="flex:1; font-weight:700; cursor:pointer;" onclick="toggleQuestionExpand('${key}')">${q.q} ${expanded ? '▲' : '▼'}</span>
+                <button class="small-btn" style="padding:6px 12px;" onclick="deleteQuestionFromCategory('${cat.id}','${cat.scope}',${i})">🗑️</button>
+              </div>
+              ${expanded ? `<div style="margin-top:6px; color:#555; font-size:.9em;">
+                ${q.choices.map((c, ci) => `<div>${ci === q.correct ? '✅' : '▫️'} ${c}</div>`).join('')}
+              </div>` : ''}
+            </div>
+          `;
+          }).join('')}
+        </div>
+      `;
+      renderNewQuestionCountOptions();
+    } else {
+      const cats = getAllCategoriesList();
+      el.innerHTML = `
+        <div class="card">
+          <p style="color:#555;">צרו קטגוריה חדשה לשאלות - למשל "משפחה":</p>
+          <input type="text" id="new-cat-name" placeholder="שם הקטגוריה" style="max-width:100%;">
+          <p style="color:#555; margin-top:10px;">מי יראה את הקטגוריה הזו?</p>
+          <div class="option-row" id="new-cat-scope-row"></div>
+          <p style="color:#999; font-size:.85em;">💻 רק במחשב הזה - נשמר רק כאן, אף אחד אחר לא רואה.<br>🌐 כולם רואים - נשמר אונליין, נראה בכל מחשב שנכנס לניהול.</p>
+          <button class="big-btn green" onclick="submitCreateCategory()">➕ צור קטגוריה</button>
+        </div>
+        <div class="card">
+          <div style="font-weight:700; margin-bottom:8px;">הקטגוריות שלכם:</div>
+          ${cats.length === 0 ? '<p style="color:#555;">עוד אין קטגוריות.</p>' : cats.map(c => `
+            <div style="display:flex; align-items:center; gap:8px; border-bottom:1px solid #eee; padding:10px 0;">
+              <span style="flex:1; cursor:pointer;" onclick="openCategoryId='${c.id}'; renderAdminTab();">
+                ${c.scope === 'global' ? '🌐' : '💻'} <b>${c.name}</b> <span class="muted">(${c.questions.length} שאלות)</span>
+              </span>
+              <button class="small-btn" onclick="deleteCategory('${c.id}','${c.scope}')">🗑️</button>
+            </div>
+          `).join('')}
+        </div>
+      `;
+      renderNewCatScopeToggle();
+    }
   } else if (adminTab === 'count') {
     el.innerHTML = `
       <div class="card center-text">
@@ -2617,13 +2839,35 @@ function renderSourceToggle() {
   if (!row) return;
   const mode = getQuestionSourceMode();
   row.innerHTML = '';
-  [['all', '🔀 הכל'], ['builtin', '📚 רק שאלות כלליות'], ['haredi', '📖 רק שאלות חרדיות'], ['geo', '🗺️ רק גיאוגרפיה'], ['custom', '📋 רק השאלות שלי']].forEach(([val, label]) => {
+  const options = [['all', '🔀 הכל'], ['builtin', '📚 רק שאלות כלליות'], ['haredi', '📖 רק שאלות חרדיות'], ['geo', '🗺️ רק גיאוגרפיה'], ['custom', '📋 רק השאלות שלי']];
+  getAllCategoriesList().forEach(c => options.push(['cat:' + c.id, '🗂️ רק ' + c.name]));
+  options.forEach(([val, label]) => {
     const b = document.createElement('button');
     b.className = 'option-btn' + (mode === val ? ' selected' : '');
     b.textContent = label;
     b.onclick = () => { setQuestionSourceMode(val); renderSourceToggle(); };
     row.appendChild(b);
   });
+}
+
+function renderNewCatScopeToggle() {
+  const row = document.getElementById('new-cat-scope-row');
+  if (!row) return;
+  row.innerHTML = '';
+  [['local', '💻 רק במחשב הזה'], ['global', '🌐 כולם יראו בכל מחשב']].forEach(([val, label]) => {
+    const b = document.createElement('button');
+    b.className = 'option-btn' + (newCategoryScope === val ? ' selected' : '');
+    b.textContent = label;
+    b.onclick = () => { newCategoryScope = val; renderNewCatScopeToggle(); };
+    row.appendChild(b);
+  });
+}
+
+function submitCreateCategory() {
+  const nameInput = document.getElementById('new-cat-name');
+  const name = nameInput.value.trim();
+  if (!name) { alert('תכניסו שם לקטגוריה'); return; }
+  createCategory(name, newCategoryScope);
 }
 
 let openSlotIndex = -1;
