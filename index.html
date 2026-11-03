@@ -520,7 +520,7 @@ const QUESTION_BANK = [
   { q: "כמה זה 9 כפול 9?", choices: ["72", "81", "90", "99"], correct: 1 },
 ];
 
-// בנק שאלות בסגנון חרדי - תורה, חגים, הלכה וגדולי ישראל
+// בנק שאלות יהדות - תורה, חגים, הלכה וגדולי ישראל
 const QUESTION_BANK_HAREDI = [
   { q: "כמה חומשים יש בתורה?", choices: ["4", "5", "6", "3"], correct: 1 },
   { q: "מי הוציא את עם ישראל ממצרים?", choices: ["אהרן הכהן", "משה רבנו", "יהושע בן נון", "שמואל הנביא"], correct: 1 },
@@ -2400,7 +2400,7 @@ function renderAdminPanel() {
         <button class="option-btn ${adminTab === 'add' ? 'selected' : ''}" onclick="setAdminTab('add')">➕ הוסף שאלה</button>
         <button class="option-btn ${adminTab === 'list' ? 'selected' : ''}" onclick="setAdminTab('list')">📋 השאלות שלי</button>
         <button class="option-btn ${adminTab === 'builtin' ? 'selected' : ''}" onclick="setAdminTab('builtin')">📚 שאלות המערכת</button>
-        <button class="option-btn ${adminTab === 'haredi' ? 'selected' : ''}" onclick="setAdminTab('haredi')">📖 שאלות חרדיות</button>
+        <button class="option-btn ${adminTab === 'haredi' ? 'selected' : ''}" onclick="setAdminTab('haredi')">📖 יהדות</button>
         <button class="option-btn ${adminTab === 'geo' ? 'selected' : ''}" onclick="setAdminTab('geo')">🗺️ גיאוגרפיה של ישראל</button>
         <button class="option-btn ${adminTab === 'categories' ? 'selected' : ''}" onclick="setAdminTab('categories')">🗂️ קטגוריות שלי</button>
         <button class="option-btn ${adminTab === 'scores' ? 'selected' : ''}" onclick="setAdminTab('scores')">🏆 ניקודים</button>
@@ -2510,7 +2510,7 @@ function renderAdminTab() {
     const disabledH = getDisabledHarediIndices();
     el.innerHTML = `
       <div class="card">
-        <p style="color:#555;">שאלות בסגנון חרדי - תורה, חגים, הלכה וגדולי ישראל. לוחצים על שאלה כדי לראות את התשובות שלה. אפשר לבטל סימון כדי שהן לא יופיעו (בלי למחוק אותן):</p>
+        <p style="color:#555;">שאלות יהדות - תורה, חגים, הלכה וגדולי ישראל. לוחצים על שאלה כדי לראות את התשובות שלה. אפשר לבטל סימון כדי שהן לא יופיעו (בלי למחוק אותן):</p>
         ${QUESTION_BANK_HAREDI.map((q, i) => {
           const key = 'haredi-' + i;
           const expanded = expandedQuestionKeys.has(key);
@@ -2632,8 +2632,8 @@ function renderAdminTab() {
         <div class="option-row" id="source-toggle-row"></div>
         <p style="color:#999; font-size:.85em; margin-top:10px;">
           🔀 הכל - כל השאלות מכל הסוגים.<br>
-          📚 רק שאלות כלליות - ידע כללי, בלי חרדיות/גיאוגרפיה/שלי.<br>
-          📖 רק שאלות חרדיות.<br>
+          📚 רק שאלות כלליות - ידע כללי, בלי יהדות/גיאוגרפיה/שלי.<br>
+          📖 רק שאלות יהדות.<br>
           🗺️ רק גיאוגרפיה של ישראל.<br>
           📋 רק השאלות שלי - רק מה שהוספת בעצמך.
         </p>
@@ -2839,7 +2839,7 @@ function renderSourceToggle() {
   if (!row) return;
   const mode = getQuestionSourceMode();
   row.innerHTML = '';
-  const options = [['all', '🔀 הכל'], ['builtin', '📚 רק שאלות כלליות'], ['haredi', '📖 רק שאלות חרדיות'], ['geo', '🗺️ רק גיאוגרפיה'], ['custom', '📋 רק השאלות שלי']];
+  const options = [['all', '🔀 הכל'], ['builtin', '📚 רק שאלות כלליות'], ['haredi', '📖 רק יהדות'], ['geo', '🗺️ רק גיאוגרפיה'], ['custom', '📋 רק השאלות שלי']];
   getAllCategoriesList().forEach(c => options.push(['cat:' + c.id, '🗂️ רק ' + c.name]));
   options.forEach(([val, label]) => {
     const b = document.createElement('button');
