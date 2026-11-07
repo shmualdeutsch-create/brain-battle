@@ -12,25 +12,26 @@
 <style>
   :root{
     --ink:#14152C;
-    --paper:#F4F2FA;
+    --paper:#EEF1F6;
     --panel:#FFFFFF;
-    --panel-line: rgba(20,21,44,.10);
-    --text:#14152C;
-    --text-soft: rgba(20,21,44,.62);
+    --panel-line: rgba(27,36,48,.12);
+    --text:#1B2430;
+    --text-soft: rgba(27,36,48,.62);
     --accent:#FFB627;
     --accent-ink:#4A3300;
-    --accent2:#6E5BFF;
+    --accent2:#2B5BD7;
     --good:#2FAE66;
     --bad:#E6473F;
-    --shadow: 250 60% 8%;
+    --shadow: 215 45% 12%;
   }
   @media (prefers-color-scheme: dark){
     :root{
       --ink:#F1EFFA;
-      --paper:#100F24;
-      --panel:#1E2044;
+      --paper:#0F131A;
+      --panel:#171D27;
+      --accent2:#6D9BFF;
       --panel-line: rgba(241,239,250,.12);
-      --text:#F1EFFA;
+      --text:#E7ECF4;
       --text-soft: rgba(241,239,250,.66);
       --accent-ink:#3A2600;
     }
@@ -60,6 +61,16 @@
     letter-spacing: .01em;
   }
   h1 .spark{ color: var(--accent); }
+  .brand{ display:flex; align-items:center; justify-content:center; gap:14px; margin:4px 0 2px; }
+  .brand h1{ margin:0; }
+  /* מקום שמור לסמל המשחק - כרגע ריבוע זמני */
+  .brand-mark{
+    width:58px; height:58px; border-radius:16px; flex:0 0 auto;
+    display:grid; place-items:center; font-size:30px;
+    background:linear-gradient(145deg,#3F76F7,#2440A8);
+    box-shadow:0 6px 16px rgba(43,91,215,.22);
+  }
+  @media (max-width:480px){ .brand-mark{ width:46px; height:46px; border-radius:13px; font-size:24px; } }
   .tagline{ text-align:center; color:var(--text-soft); font-size:.8em; margin:0 0 22px; }
   h2 { font-family: 'Suez One', 'Assistant', sans-serif; font-weight:400; color: var(--text); margin: 6px 0 16px; text-align:center; }
   p, span, div { color: inherit; }
@@ -78,9 +89,12 @@
   .tile.solo{ box-shadow: inset 0 0 0 2px var(--accent2), 0 2px 0 hsl(var(--shadow) / .05); }
   .tile.host{ box-shadow: inset 0 0 0 2px var(--accent), 0 2px 0 hsl(var(--shadow) / .05); }
   .admin-link{
-    display:block; margin:18px auto 0; background:none; border:none; cursor:pointer;
-    color:var(--text-soft); font-family:'Assistant',sans-serif; font-weight:700; font-size:.75em;
+    display:inline-flex; align-items:center; gap:7px; margin:20px auto 0; cursor:pointer;
+    background:var(--panel); border:none; box-shadow: inset 0 0 0 1.5px var(--panel-line);
+    border-radius:10px; padding:10px 16px;
+    color:var(--text-soft); font-family:'Assistant',sans-serif; font-weight:700; font-size:.7em;
   }
+  .admin-link:hover{ box-shadow: inset 0 0 0 1.5px var(--accent2); color:var(--accent2); }
 
   .big-btn {
     font-family: inherit;
@@ -163,34 +177,166 @@
   input[type=text]:focus { outline: none; box-shadow: inset 0 0 0 2px var(--accent2); }
 
   .option-row { display: flex; flex-wrap: wrap; justify-content: center; margin-bottom: 20px; }
-  .admin-layout {
-    display: flex;
-    flex-direction: row;
-    align-items: flex-start;
-    gap: 16px;
-    width: 100%;
-    max-width: 1000px;
+  /* ===== דף ניהול - עיצוב לוח בקרה (שונה מהמשחק) ===== */
+  #admin-panel-screen, #admin-lock-screen{
+    --adm-bg:#EEF1F6;
+    --adm-surface:#FFFFFF;
+    --adm-surface-2:#F6F8FC;
+    --adm-line:#D7DEE8;
+    --adm-text:#1B2430;
+    --adm-muted:#5A6678;
+    --adm-accent:#2B5BD7;
+    --adm-accent-soft:#E9EEFC;
+    font-size: 17px;
+    background: var(--adm-bg);
+    color: var(--adm-text);
+    padding: 0;
+    align-items: stretch;
   }
-  .admin-sidebar {
-    flex: 0 0 230px;
-    display: flex;
-    flex-direction: column;
-    gap: 8px;
+  @media (prefers-color-scheme: dark){
+    #admin-panel-screen, #admin-lock-screen{
+      --adm-bg:#0F131A;
+      --adm-surface:#171D27;
+      --adm-surface-2:#1E2531;
+      --adm-line:#2B3442;
+      --adm-text:#E7ECF4;
+      --adm-muted:#9AA6B8;
+      --adm-accent:#6D9BFF;
+      --adm-accent-soft:#1C2740;
+    }
   }
-  .admin-sidebar .option-btn {
-    width: 100%; margin: 0; text-align: right; font-size: .92em; padding: 13px 16px;
+  body:has(#admin-panel-screen.active) .hub-link,
+  body:has(#admin-lock-screen.active) .hub-link { display: none; }
+  #admin-panel-content{ width:100%; }
+
+  .adm-topbar{
+    background: var(--adm-surface);
+    border-bottom: 1px solid var(--adm-line);
+    padding: 0 20px;
+    position: sticky; top: 0; z-index: 20;
   }
-  .admin-sidebar .option-btn.selected {
-    box-shadow: inset 0 0 0 2px var(--accent2); background: color-mix(in srgb, var(--accent2) 10%, var(--panel));
+  .adm-topbar-in{
+    max-width: 1180px; margin: 0 auto; min-height: 62px;
+    display: flex; align-items: center; justify-content: space-between; gap: 12px;
   }
-  .admin-main { flex: 1 1 auto; min-width: 0; }
-  .admin-main .card,
-  .admin-main table.leaderboard { max-width: none; }
-  @media (max-width: 640px) {
-    .admin-layout { flex-direction: column; }
-    .admin-sidebar { flex-direction: row; flex-wrap: wrap; justify-content: center; flex-basis: auto; width: 100%; }
-    .admin-sidebar .option-btn { width: auto; }
+  .adm-brand{ display:flex; align-items:center; gap:10px; }
+  .adm-brand-mark{
+    width:32px; height:32px; border-radius:8px; background:var(--adm-accent); color:#fff;
+    display:grid; place-items:center; font-size:.85em; flex:0 0 auto;
   }
+  .adm-brand-txt b{ display:block; font-size:.92em; font-weight:800; letter-spacing:.01em; }
+  .adm-brand-txt span{ display:block; font-size:.66em; font-weight:600; color:var(--adm-muted); }
+  .adm-back{
+    font-family: inherit; font-size:.78em; font-weight:700; color:var(--adm-text);
+    background: var(--adm-surface-2); border:1px solid var(--adm-line);
+    border-radius:8px; padding:9px 14px; cursor:pointer;
+  }
+  .adm-back:hover{ background:var(--adm-accent-soft); border-color:var(--adm-accent); color:var(--adm-accent); }
+
+  .adm-shell{
+    display:flex; align-items:flex-start; gap:22px;
+    width:100%; max-width:1180px; margin:0 auto; padding:22px 20px 50px;
+  }
+  .adm-nav{
+    flex:0 0 234px; background:var(--adm-surface); border:1px solid var(--adm-line);
+    border-radius:10px; padding:8px; position:sticky; top:84px;
+  }
+  .adm-nav-group{
+    font-size:.64em; font-weight:800; letter-spacing:.09em; color:var(--adm-muted);
+    padding:13px 11px 6px;
+  }
+  .adm-nav-item{
+    display:block; width:100%; font-family:inherit; font-size:.84em; font-weight:600;
+    text-align:right; color:var(--adm-text); background:none; border:none; border-radius:7px;
+    padding:10px 12px; cursor:pointer; position:relative;
+  }
+  .adm-nav-item:hover{ background:var(--adm-surface-2); }
+  .adm-nav-item.active{ background:var(--adm-accent-soft); color:var(--adm-accent); font-weight:800; }
+  .adm-nav-item.active::before{
+    content:''; position:absolute; right:0; top:7px; bottom:7px; width:3px;
+    border-radius:2px; background:var(--adm-accent);
+  }
+  .adm-main{ flex:1 1 auto; min-width:0; }
+  .adm-page-head{ padding:0 2px 14px; border-bottom:1px solid var(--adm-line); margin-bottom:16px; }
+  .adm-page-title{ font-family:'Assistant',sans-serif; font-size:1.3em; font-weight:800; margin:0; }
+  .adm-page-sub{ font-size:.76em; color:var(--adm-muted); margin:4px 0 0; }
+
+  #admin-panel-screen .card, #admin-lock-screen .card{
+    background:var(--adm-surface); border:1px solid var(--adm-line); border-radius:10px;
+    box-shadow:none; padding:18px; max-width:none; margin:0 0 16px; font-size:.9em;
+  }
+  #admin-panel-screen h2, #admin-lock-screen h2{
+    font-family:'Assistant',sans-serif; font-weight:800; font-size:1.15em; margin:0 0 14px;
+  }
+  #admin-panel-screen .big-btn, #admin-lock-screen .big-btn{
+    background:var(--adm-accent); color:#fff; box-shadow:none; border-radius:8px;
+    font-size:.84em; font-weight:700; padding:12px 20px; width:auto; max-width:none; margin:12px 0 0;
+  }
+  #admin-panel-screen .big-btn:active, #admin-lock-screen .big-btn:active{ transform:none; filter:brightness(.93); box-shadow:none; }
+  #admin-panel-screen .small-btn, #admin-lock-screen .small-btn{
+    background:var(--adm-surface-2); border:1px solid var(--adm-line); box-shadow:none;
+    border-radius:8px; color:var(--adm-text); font-size:.78em; font-weight:700; padding:8px 13px; margin:6px 0 0 8px;
+  }
+  #admin-panel-screen .small-btn:hover{ border-color:var(--adm-accent); color:var(--adm-accent); }
+  #admin-panel-screen .option-btn{
+    background:var(--adm-surface-2); border:1px solid var(--adm-line); box-shadow:none;
+    border-radius:8px; color:var(--adm-text); font-size:.8em; font-weight:700; padding:9px 14px; margin:4px;
+  }
+  #admin-panel-screen .option-btn.selected{
+    background:var(--adm-accent); border-color:var(--adm-accent); color:#fff; box-shadow:none;
+  }
+  #admin-panel-screen input[type=text], #admin-lock-screen input[type=text],
+  #admin-panel-screen textarea{
+    background:var(--adm-surface); border:1px solid var(--adm-line); box-shadow:none;
+    border-radius:8px; text-align:right; font-size:.88em; padding:10px 12px; max-width:420px; margin:6px 0;
+  }
+  #admin-lock-screen input[type=text]{ text-align:center; letter-spacing:.3em; max-width:220px; }
+  #admin-panel-screen input[type=text]:focus, #admin-lock-screen input[type=text]:focus{
+    outline:none; border-color:var(--adm-accent); box-shadow:0 0 0 3px var(--adm-accent-soft);
+  }
+  #admin-panel-screen table.leaderboard{
+    background:var(--adm-surface); border:1px solid var(--adm-line); border-radius:10px;
+    box-shadow:none; max-width:none; font-size:.84em;
+  }
+  #admin-panel-screen table.leaderboard th{
+    background:var(--adm-surface-2); color:var(--adm-muted); font-size:.82em; font-weight:800;
+    border-bottom:1px solid var(--adm-line); padding:11px 14px;
+  }
+  #admin-panel-screen table.leaderboard td{ border-bottom:1px solid var(--adm-line); padding:11px 14px; }
+  #admin-panel-screen table.leaderboard tr:nth-child(even){ background:transparent; }
+  #admin-panel-screen .image-dropzone{
+    background:var(--adm-surface-2); border:1px dashed var(--adm-line); border-radius:8px; font-size:.85em; padding:16px;
+  }
+  #admin-panel-screen .feedback-banner{ font-size:.85em !important; font-weight:700; margin:12px 0 0; }
+  #admin-panel-screen .muted{ color:var(--adm-muted); font-size:.85em; }
+  #admin-panel-screen [style*="#555"]{ color:var(--adm-muted) !important; }
+  #admin-panel-screen [style*="#999"]{ color:var(--adm-muted) !important; }
+  #admin-panel-screen [style*="#eee"]{ border-color:var(--adm-line) !important; }
+  #admin-panel-screen input[type=checkbox], #admin-panel-screen input[type=radio]{ accent-color:var(--adm-accent); width:17px; height:17px; }
+
+  #admin-lock-screen{
+    align-items:center; justify-content:center; padding:20px;
+  }
+  #admin-lock-screen .card{ max-width:360px; }
+
+  @media (max-width: 860px){
+    .adm-shell{ flex-direction:column; padding:14px 12px 34px; gap:14px; }
+    .adm-nav{
+      position:static; width:100%; flex:0 0 auto; display:flex; gap:6px;
+      overflow-x:auto; padding:7px; border-radius:9px;
+    }
+    .adm-nav-group{ display:none; }
+    .adm-nav-item{ width:auto; white-space:nowrap; font-size:.8em; }
+    .adm-nav-item.active::before{ display:none; }
+    .adm-topbar{ padding:0 12px; }
+  }
+  .adm-nav::-webkit-scrollbar{ height:7px; }
+  .adm-nav::-webkit-scrollbar-thumb{ background:var(--adm-line); border-radius:4px; }
+  .adm-nav::-webkit-scrollbar-track{ background:transparent; }
+  #admin-lock-screen .lock-brand{ display:flex; align-items:center; gap:12px; margin-bottom:20px; }
+  #admin-lock-screen .lock-mark{ width:46px; height:46px; border-radius:12px; display:grid; place-items:center; font-size:24px; background:linear-gradient(145deg,#3F76F7,#2440A8); }
+  #admin-lock-screen .lock-brand b{ display:block; font-size:1em; font-weight:800; }
+  #admin-lock-screen .lock-brand span{ display:block; font-size:.72em; font-weight:600; color:var(--adm-muted); }
   .option-btn {
     font-family: inherit;
     padding: 13px 19px; margin: 6px; border-radius: 14px; border: none;
@@ -335,7 +481,7 @@
   .hub-link{
     position:fixed; top:14px; right:14px; z-index:100; text-decoration:none;
     background: var(--panel); color: var(--text); font-family:'Assistant',sans-serif; font-weight:800; font-size:14px;
-    padding:8px 14px; border-radius:99px; box-shadow: inset 0 0 0 1.5px var(--panel-line), 0 2px 8px rgba(0,0,0,.15);
+    padding:9px 15px; border-radius:10px; box-shadow: inset 0 0 0 1.5px var(--panel-line), 0 2px 10px hsl(var(--shadow) / .07);
   }
 </style>
 </head>
@@ -345,7 +491,7 @@
 
 <!-- ===== תפריט ראשי ===== -->
 <div id="menu-screen" class="screen active">
-  <h1>🧠 קרב <span class="spark">מוחות</span> 🧠</h1>
+  <div class="brand"><span class="brand-mark">🧠</span><h1>קרב <span class="spark">מוחות</span></h1></div>
   <p class="tagline">מי יהיה אלוף הידע היום?</p>
   <div class="tile-grid">
     <button class="tile solo" onclick="goSolo()"><span class="tile-ico">🧍</span><span class="tile-lbl">שחקן יחיד</span></button>
@@ -435,7 +581,7 @@
 </div>
 <!-- ===== ניהול - נעילה ===== -->
 <div id="admin-lock-screen" class="screen">
-  <h2>🔒 ניהול</h2>
+  <div class="lock-brand"><span class="lock-mark">🧠</span><div><b>לוח ניהול</b><span>קרב מוחות</span></div></div>
   <div class="card center-text" id="admin-lock-content"></div>
   <button class="small-btn" onclick="showScreen('menu-screen')">⬅️ תפריט ראשי</button>
 </div>
@@ -2424,32 +2570,73 @@ function openAdminPanel() {
   renderAdminPanel();
 }
 
+const ADMIN_NAV = [
+  { group: 'ניהול שאלות', items: [
+    { id: 'add',        label: 'הוספת שאלה',          sub: 'שאלה חדשה עם תשובות, תמונה או סרטון' },
+    { id: 'list',       label: 'השאלות שלי',           sub: 'כל השאלות שהוספת, עם אפשרות למחיקה' },
+    { id: 'builtin',    label: 'שאלות המערכת',         sub: 'מצאי השאלות הכלליות - סימון מה פעיל' },
+    { id: 'haredi',     label: 'יהדות',                sub: 'מצאי שאלות תורה, חגים, הלכה וגדולי ישראל' },
+    { id: 'geo',        label: 'גיאוגרפיה של ישראל',   sub: 'מצאי שאלות ערים, הרים, ימים ונהרות' },
+    { id: 'categories', label: 'קטגוריות שלי',         sub: 'יצירה וניהול של קטגוריות שאלות' },
+  ] },
+  { group: 'הגדרות משחק', items: [
+    { id: 'count',  label: 'מספר שאלות',    sub: 'כמה שאלות יהיו בכל סיבוב של שחקן יחיד' },
+    { id: 'source', label: 'מקור שאלות',    sub: 'מאיזה מצאי יילקחו השאלות למשחק' },
+    { id: 'manual', label: 'בחירת שאלות',   sub: 'קביעה ידנית של השאלה בכל מקום בסיבוב' },
+    { id: 'time',   label: 'זמן לשאלה',     sub: 'מגבלת הזמן שניתנת לכל שאלה' },
+    { id: 'sound',  label: 'צלילים ומוזיקה', sub: 'הפעלה וכיבוי של אפקטי קול ומוזיקת רקע' },
+  ] },
+  { group: 'דוחות ואבטחה', items: [
+    { id: 'scores', label: 'ניקודים',          sub: 'היסטוריית משחקים ופירוט לכל שאלה' },
+    { id: 'pin',    label: 'שינוי קוד כניסה',  sub: 'קוד בן 5 ספרות לכניסה לדף הניהול' },
+    { id: 'photos', label: 'יומן כניסות',      sub: 'תמונות של מי שהקליד את קוד הניהול' },
+  ] },
+];
+
+function adminTabMeta(id) {
+  for (const g of ADMIN_NAV) {
+    const found = g.items.find(it => it.id === id);
+    if (found) return found;
+  }
+  return { label: 'ניהול', sub: '' };
+}
+
 function renderAdminPanel() {
   const content = document.getElementById('admin-panel-content');
+  const meta = adminTabMeta(adminTab);
   content.innerHTML = `
-    <h2>⚙️ ניהול המשחק</h2>
-    <button class="small-btn" onclick="showScreen('menu-screen')">⬅️ תפריט ראשי</button>
-    <div class="admin-layout">
-      <div class="admin-sidebar">
-        <button class="option-btn ${adminTab === 'add' ? 'selected' : ''}" onclick="setAdminTab('add')">➕ הוסף שאלה</button>
-        <button class="option-btn ${adminTab === 'list' ? 'selected' : ''}" onclick="setAdminTab('list')">📋 השאלות שלי</button>
-        <button class="option-btn ${adminTab === 'builtin' ? 'selected' : ''}" onclick="setAdminTab('builtin')">📚 שאלות המערכת</button>
-        <button class="option-btn ${adminTab === 'haredi' ? 'selected' : ''}" onclick="setAdminTab('haredi')">📖 יהדות</button>
-        <button class="option-btn ${adminTab === 'geo' ? 'selected' : ''}" onclick="setAdminTab('geo')">🗺️ גיאוגרפיה של ישראל</button>
-        <button class="option-btn ${adminTab === 'categories' ? 'selected' : ''}" onclick="setAdminTab('categories')">🗂️ קטגוריות שלי</button>
-        <button class="option-btn ${adminTab === 'scores' ? 'selected' : ''}" onclick="setAdminTab('scores')">🏆 ניקודים</button>
-        <button class="option-btn ${adminTab === 'count' ? 'selected' : ''}" onclick="setAdminTab('count')">🔢 מספר שאלות</button>
-        <button class="option-btn ${adminTab === 'source' ? 'selected' : ''}" onclick="setAdminTab('source')">🔀 מקור שאלות</button>
-        <button class="option-btn ${adminTab === 'manual' ? 'selected' : ''}" onclick="setAdminTab('manual')">✅ בחירת שאלות</button>
-        <button class="option-btn ${adminTab === 'time' ? 'selected' : ''}" onclick="setAdminTab('time')">⏱️ זמן לשאלה</button>
-        <button class="option-btn ${adminTab === 'sound' ? 'selected' : ''}" onclick="setAdminTab('sound')">🔊 צלילים</button>
-        <button class="option-btn ${adminTab === 'pin' ? 'selected' : ''}" onclick="setAdminTab('pin')">🔑 שנה קוד</button>
-        <button class="option-btn ${adminTab === 'photos' ? 'selected' : ''}" onclick="setAdminTab('photos')">📷 מי ניסה להיכנס</button>
+    <div class="adm-topbar">
+      <div class="adm-topbar-in">
+        <div class="adm-brand">
+          <span class="adm-brand-mark">⚙</span>
+          <span class="adm-brand-txt"><b>לוח ניהול</b><span>קרב מוחות</span></span>
+        </div>
+        <button class="adm-back" onclick="showScreen('menu-screen')">יציאה לתפריט</button>
       </div>
-      <div id="admin-tab-content" class="admin-main"></div>
     </div>
-    <div class="footer-space"></div>
+    <div class="adm-shell">
+      <nav class="adm-nav">
+        ${ADMIN_NAV.map(g => `
+          <div class="adm-nav-group">${g.group}</div>
+          ${g.items.map(it => `
+            <button class="adm-nav-item ${adminTab === it.id ? 'active' : ''}" onclick="setAdminTab('${it.id}')">${it.label}</button>
+          `).join('')}
+        `).join('')}
+      </nav>
+      <div class="adm-main">
+        <div class="adm-page-head">
+          <div class="adm-page-title">${meta.label}</div>
+          <p class="adm-page-sub">${meta.sub}</p>
+        </div>
+        <div id="admin-tab-content"></div>
+      </div>
+    </div>
   `;
+  const navEl = content.querySelector('.adm-nav');
+  const activeEl = content.querySelector('.adm-nav-item.active');
+  if (navEl && activeEl && navEl.scrollWidth > navEl.clientWidth) {
+    navEl.scrollLeft = activeEl.offsetLeft - (navEl.clientWidth - activeEl.offsetWidth) / 2;
+  }
   renderAdminTab();
 }
 
