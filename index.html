@@ -236,6 +236,15 @@
     box-shadow: 0 8px 20px rgba(0,0,0,.2);
   }
   .video-wrap iframe { position: absolute; top: 0; left: 0; width: 100%; height: 100%; border: 0; }
+  .video-fallback {
+    background: var(--panel);
+    border-radius: 18px;
+    padding: 18px 14px;
+    margin: 0 auto 14px;
+    max-width: 560px;
+    text-align: center;
+    box-shadow: 0 8px 20px rgba(0,0,0,.2);
+  }
   .question-video {
     display: block;
     max-width: 100%;
@@ -705,8 +714,23 @@ function initMusicOnFirstInteraction() {
 initMusicOnFirstInteraction();
 
 function getYouTubeEmbedUrl(url) {
-  const m = url.match(/(?:youtube\.com\/(?:watch\?v=|embed\/|shorts\/)|youtu\.be\/)([\w-]{11})/);
-  return m ? `https://www.youtube.com/embed/${m[1]}` : null;
+  const u = String(url || '').trim();
+  let m = u.match(/(?:youtube\.com|youtube-nocookie\.com)\/(?:embed\/|shorts\/|live\/|v\/)([\w-]{11})/);
+  if (!m) m = u.match(/[?&]v=([\w-]{11})/);
+  if (!m) m = u.match(/youtu\.be\/([\w-]{11})/);
+  if (!m && /^[\w-]{11}$/.test(u)) m = [null, u];
+  return m ? `https://www.youtube.com/embed/${m[1]}?rel=0` : null;
+}
+
+function getDriveEmbedUrl(url) {
+  const u = String(url || '').trim();
+  const m = u.match(/drive\.google\.com\/(?:file\/d\/|open\?id=|uc\?(?:[^#]*&)?id=)([\w-]{10,})/);
+  return m ? `https://drive.google.com/file/d/${m[1]}/preview` : null;
+}
+
+function isDirectVideoUrl(url) {
+  const u = String(url || '').trim();
+  return /^(blob:|data:video\/)/i.test(u) || /\.(mp4|webm|ogg|ogv|mov|m4v)(\?|#|$)/i.test(u);
 }
 
 function questionMediaHtml(q) {
@@ -714,10 +738,20 @@ function questionMediaHtml(q) {
   if (q.image) html += `<img src="${q.image}" class="question-image" onerror="this.style.display='none'">`;
   if (q.video) {
     const yt = getYouTubeEmbedUrl(q.video);
-    html += yt
-      ? `<div class="video-wrap"><iframe src="${yt}" allowfullscreen></iframe></div>
-         <div class="center-text" style="margin:-6px 0 14px;"><a href="${q.video}" target="_blank" rel="noopener" style="color:#0f4d8f; font-weight:700;">▶️ אם הסרטון לא נטען - פתחו ביוטיוב</a></div>`
-      : `<video class="question-video" controls src="${q.video}"></video>`;
+    const drive = yt ? null : getDriveEmbedUrl(q.video);
+    const openLink = `<div class="center-text" style="margin:-6px 0 14px;"><a href="${q.video}" target="_blank" rel="noopener" style="color:#0f4d8f; font-weight:700;">▶️ אם הסרטון לא נטען - פתחו אותו כאן</a></div>`;
+    if (yt || drive) {
+      html += `<div class="video-wrap"><iframe src="${yt || drive}" allowfullscreen allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"></iframe></div>` + openLink;
+    } else if (isDirectVideoUrl(q.video)) {
+      html += `<video class="question-video" controls playsinline src="${q.video}"></video>` + openLink;
+    } else {
+      html += `<div class="video-fallback">
+          <div style="font-size:2.2em; line-height:1;">🎬</div>
+          <div style="font-weight:700; margin:8px 0 10px;">אי אפשר להריץ את הסרטון הזה בתוך המשחק</div>
+          <a class="big-btn green" style="display:inline-block; text-decoration:none;" href="${q.video}" target="_blank" rel="noopener">▶️ לפתיחת הסרטון בחלון חדש</a>
+          <div class="muted" style="margin-top:8px; font-size:.85em;">טיפ: קישור מיוטיוב ירוץ ישירות בתוך המשחק</div>
+        </div>`;
+    }
   }
   return html;
 }
