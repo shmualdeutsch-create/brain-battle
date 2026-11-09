@@ -187,11 +187,173 @@
     --adm-muted:#5A6678;
     --adm-accent:#2B5BD7;
     --adm-accent-soft:#E9EEFC;
-    font-size: 17px;
     background: var(--adm-bg);
     color: var(--adm-text);
     padding: 0;
     align-items: stretch;
+  }
+  /* רק לוח הניהול קטן יותר - מסך הקוד נשאר בגודל של המשחק */
+  #admin-panel-screen{ font-size: 17px; }
+
+  /* ===== אשף הכנת משחק - סגנון לוח הבקרה ===== */
+  #plan-screen{
+    --adm-bg:#EEF1F6;
+    --adm-surface:#FFFFFF;
+    --adm-surface-2:#F6F8FC;
+    --adm-line:#D7DEE8;
+    --adm-text:#1B2430;
+    --adm-muted:#5A6678;
+    --adm-accent:#2B5BD7;
+    --adm-accent-soft:#E9EEFC;
+    font-size: 19px;
+    background: var(--adm-bg);
+    color: var(--adm-text);
+    padding: 0;
+    align-items: stretch;
+  }
+  @media (prefers-color-scheme: dark){
+    #plan-screen{
+      --adm-bg:#0F131A;
+      --adm-surface:#171D27;
+      --adm-surface-2:#1E2531;
+      --adm-line:#2B3442;
+      --adm-text:#E7ECF4;
+      --adm-muted:#9AA6B8;
+      --adm-accent:#6D9BFF;
+      --adm-accent-soft:#1C2740;
+    }
+  }
+  body:has(#plan-screen.active) .hub-link{ display:none; }
+  #plan-content{ width:100%; }
+
+  .plan-wrap{ width:100%; max-width:760px; margin:0 auto; padding:22px 18px 50px; }
+
+  /* פס ההתקדמות של השלבים */
+  .plan-steps{ display:flex; align-items:center; gap:0; margin:0 0 20px; }
+  .plan-step{ display:flex; align-items:center; flex:1 1 auto; }
+  .plan-step:last-child{ flex:0 0 auto; }
+  .plan-dot{
+    width:34px; height:34px; border-radius:50%; flex:0 0 auto;
+    display:grid; place-items:center; font-size:.72em; font-weight:800;
+    background:var(--adm-surface); border:1px solid var(--adm-line); color:var(--adm-muted);
+  }
+  .plan-dot.done{ background:var(--adm-accent); border-color:var(--adm-accent); color:#fff; }
+  .plan-dot.now{ background:var(--adm-accent-soft); border-color:var(--adm-accent); color:var(--adm-accent); }
+  .plan-line{ flex:1 1 auto; height:2px; background:var(--adm-line); }
+  .plan-line.done{ background:var(--adm-accent); }
+
+  .plan-card{
+    background:var(--adm-surface); border:1px solid var(--adm-line); border-radius:12px;
+    padding:24px; margin-bottom:16px;
+  }
+  .plan-kicker{ font-size:.66em; font-weight:800; letter-spacing:.09em; color:var(--adm-muted); margin:0 0 6px; }
+  .plan-title{ font-family:'Assistant',sans-serif; font-size:1.35em; font-weight:800; margin:0 0 6px; }
+  .plan-sub{ font-size:.82em; color:var(--adm-muted); margin:0 0 18px; }
+  .plan-label{ display:block; font-size:.8em; font-weight:700; margin:16px 0 7px; }
+  .plan-hint{ font-size:.74em; color:var(--adm-muted); margin:7px 0 0; }
+
+  #plan-screen input[type=text], #plan-screen input[type=time], #plan-screen textarea{
+    width:100%; max-width:100%; font-family:inherit; font-size:.88em;
+    background:var(--adm-surface); color:var(--adm-text);
+    border:1px solid var(--adm-line); border-radius:8px; box-shadow:none;
+    padding:11px 13px; text-align:right; margin:0;
+  }
+  #plan-screen textarea{ min-height:130px; resize:vertical; line-height:1.5; }
+  #plan-screen input:focus, #plan-screen textarea:focus{
+    outline:none; border-color:var(--adm-accent); box-shadow:0 0 0 3px var(--adm-accent-soft);
+  }
+
+  .plan-opts{ display:flex; flex-wrap:wrap; gap:8px; }
+  .plan-opt{
+    font-family:inherit; font-size:.8em; font-weight:700; cursor:pointer;
+    background:var(--adm-surface-2); color:var(--adm-text);
+    border:1px solid var(--adm-line); border-radius:8px; padding:10px 16px;
+  }
+  .plan-opt:hover{ border-color:var(--adm-accent); color:var(--adm-accent); }
+  .plan-opt.selected{ background:var(--adm-accent); border-color:var(--adm-accent); color:#fff; }
+
+  .plan-nav{ display:flex; gap:10px; align-items:center; margin-top:4px; }
+  .plan-btn{
+    font-family:inherit; font-size:.82em; font-weight:700; cursor:pointer;
+    background:var(--adm-surface); color:var(--adm-text);
+    border:1px solid var(--adm-line); border-radius:8px; padding:12px 20px;
+  }
+  .plan-btn:hover{ border-color:var(--adm-accent); color:var(--adm-accent); }
+  .plan-btn.primary{ background:var(--adm-accent); border-color:var(--adm-accent); color:#fff; }
+  .plan-btn.primary:hover{ filter:brightness(1.07); color:#fff; }
+  .plan-btn.go{ background:#2FAE66; border-color:#2FAE66; color:#fff; font-size:.92em; padding:14px 26px; }
+  .plan-btn.go:hover{ filter:brightness(1.07); color:#fff; }
+  .plan-btn:disabled{ opacity:.5; cursor:not-allowed; }
+  .plan-spacer{ flex:1 1 auto; }
+
+  /* סיכום */
+  .plan-sum-row{
+    display:flex; justify-content:space-between; gap:14px;
+    padding:12px 0; border-bottom:1px solid var(--adm-line); font-size:.84em;
+  }
+  .plan-sum-row:last-child{ border-bottom:none; }
+  .plan-sum-row b{ font-weight:800; }
+  .plan-sum-row span{ color:var(--adm-muted); text-align:left; }
+
+
+  /* רשימת השאלות באשף */
+  .plan-dot{ cursor:pointer; }
+  .plan-slots{ display:flex; flex-direction:column; gap:9px; }
+  .plan-slot{
+    border:1px solid var(--adm-line); border-radius:9px;
+    background:var(--adm-surface-2); overflow:hidden;
+  }
+  .plan-slot.filled{ background:var(--adm-surface); border-color:var(--adm-accent); }
+  .plan-slot-head{
+    display:flex; align-items:center; gap:10px; width:100%;
+    font-family:inherit; font-size:.8em; font-weight:700; text-align:right;
+    background:none; border:none; color:var(--adm-text); padding:12px 13px; cursor:pointer;
+  }
+  .plan-slot-num{
+    flex:0 0 auto; width:28px; height:28px; border-radius:7px;
+    display:grid; place-items:center; font-size:.85em; font-weight:800;
+    background:var(--adm-accent-soft); color:var(--adm-accent);
+  }
+  .plan-slot.filled .plan-slot-num{ background:var(--adm-accent); color:#fff; }
+  .plan-slot-txt{ flex:1 1 auto; min-width:0; }
+  .plan-slot:not(.filled) .plan-slot-txt{ color:var(--adm-muted); font-weight:600; }
+  .plan-slot-arrow{ flex:0 0 auto; color:var(--adm-muted); font-size:.75em; }
+  .plan-check{
+    display:flex; align-items:center; gap:7px; cursor:pointer;
+    font-size:.72em; color:var(--adm-muted); padding:0 13px 12px;
+  }
+  .plan-check input{ accent-color:var(--adm-accent); width:16px; height:16px; }
+
+  .plan-picker{ border-top:1px solid var(--adm-line); padding:12px 13px 13px; }
+  .plan-picker-filters{ margin-bottom:10px; }
+  .plan-picker-filters .plan-opt{ font-size:.72em; padding:7px 12px; }
+  #plan-screen .plan-search{ margin-bottom:10px; }
+  .plan-picker-list{
+    max-height:320px; overflow-y:auto;
+    border:1px solid var(--adm-line); border-radius:8px; background:var(--adm-surface);
+  }
+  .plan-picker-item{
+    padding:11px 13px; font-size:.78em; cursor:pointer;
+    border-bottom:1px solid var(--adm-line);
+  }
+  .plan-picker-item:last-child{ border-bottom:none; }
+  .plan-picker-item:hover{ background:var(--adm-accent-soft); color:var(--adm-accent); }
+  .plan-picker-item.current{ background:var(--adm-accent-soft); color:var(--adm-accent); font-weight:800; }
+  .plan-picker-item.used{ color:var(--adm-muted); }
+  .plan-picker-empty{ padding:16px; font-size:.78em; color:var(--adm-muted); text-align:center; }
+
+  .plan-time-row{
+    display:flex; align-items:center; gap:10px;
+    border:1px solid var(--adm-line); border-radius:9px; background:var(--adm-surface);
+    padding:9px 12px; font-size:.78em;
+  }
+  .plan-time-txt{ flex:1 1 auto; min-width:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+  #plan-screen .plan-time-input{ flex:0 0 78px; width:78px; text-align:center; padding:8px; font-size:.95em; }
+  .plan-time-unit{ flex:0 0 auto; color:var(--adm-muted); font-size:.9em; }
+  @media (max-width:560px){
+    .plan-wrap{ padding:14px 12px 40px; }
+    .plan-card{ padding:18px; }
+    .plan-dot{ width:28px; height:28px; }
   }
   @media (prefers-color-scheme: dark){
     #admin-panel-screen, #admin-lock-screen{
@@ -290,7 +452,7 @@
     background:var(--adm-surface); border:1px solid var(--adm-line); box-shadow:none;
     border-radius:8px; text-align:right; font-size:.88em; padding:10px 12px; max-width:420px; margin:6px 0;
   }
-  #admin-lock-screen input[type=text]{ text-align:center; letter-spacing:.3em; max-width:220px; }
+  #admin-lock-screen input[type=text]{ text-align:center; letter-spacing:.3em; max-width:300px; }
   #admin-panel-screen input[type=text]:focus, #admin-lock-screen input[type=text]:focus{
     outline:none; border-color:var(--adm-accent); box-shadow:0 0 0 3px var(--adm-accent-soft);
   }
@@ -317,7 +479,7 @@
   #admin-lock-screen{
     align-items:center; justify-content:center; padding:20px;
   }
-  #admin-lock-screen .card{ max-width:360px; }
+  #admin-lock-screen .card{ max-width:470px; }
 
   @media (max-width: 860px){
     .adm-shell{ flex-direction:column; padding:14px 12px 34px; gap:14px; }
@@ -496,7 +658,7 @@
   <div class="tile-grid">
     <button class="tile solo" onclick="goSolo()"><span class="tile-ico">🧍</span><span class="tile-lbl">שחקן יחיד</span></button>
     <button class="tile host" onclick="goHostSetup()"><span class="tile-ico">📺</span><span class="tile-lbl">אני המנחה</span></button>
-    <button class="tile" onclick="goPlannedHostSetup()"><span class="tile-ico">👥</span><span class="tile-lbl">הכנת קבוצה מראש</span></button>
+    <button class="tile" onclick="goPlannedHostSetup()"><span class="tile-ico">🎬</span><span class="tile-lbl">הכנת משחק</span></button>
     <button class="tile" onclick="goJoinSetup()"><span class="tile-ico">🎮</span><span class="tile-lbl">מצטרף למשחק</span></button>
   </div>
   <button class="admin-link" onclick="goAdmin()">⚙️ ניהול - הוספת שאלות וניקודים</button>
@@ -549,6 +711,11 @@
   </div>
   <button class="big-btn green" id="create-room-btn" onclick="createRoom()">🚀 צור משחק</button>
   <button class="small-btn" onclick="showScreen('menu-screen')">⬅️ תפריט ראשי</button>
+</div>
+
+<!-- ===== אשף הכנת משחק ===== -->
+<div id="plan-screen" class="screen">
+  <div id="plan-content"></div>
 </div>
 
 <!-- ===== הצטרפות דרך קישור (בחירת שם) ===== -->
@@ -1269,6 +1436,7 @@ let hostSettings = { count: 8, duration: 15 };
 let hostRoomCode = null;
 let hostPlayerId = null;
 let hostQuestions = [];
+let pendingRoomExtras = null;
 let hostRoomState = null;
 let hostQuestionTimer = null;
 
@@ -1348,15 +1516,27 @@ function generateRoomCode() {
 }
 
 function createRoom() {
-  hostQuestions = pickRandomQuestions(hostSettings.count);
+  const extras = pendingRoomExtras;
+  hostQuestions = (extras && extras.questions && extras.questions.length)
+    ? extras.questions
+    : pickRandomQuestions(hostSettings.count);
   hostPlayerId = getPlayerId();
   hostRoomCode = generateRoomCode();
-  const btn = document.getElementById('create-room-btn');
+  const btn = document.getElementById('create-room-btn') || document.getElementById('plan-create-btn');
   if (btn) { btn.disabled = true; btn.textContent = '⏳ יוצר משחק...'; }
 
-  const namesRaw = hostSetupMode === 'planned' ? document.getElementById('host-names-list').value : '';
-  const allowedNames = namesRaw.split('\n').map(s => s.trim()).filter(Boolean);
-  const scheduledTime = hostSetupMode === 'planned' ? document.getElementById('host-scheduled-time').value : '';
+  let allowedNames = [];
+  let scheduledTime = '';
+  let gameName = '';
+  if (extras) {
+    allowedNames = extras.allowedNames || [];
+    scheduledTime = extras.scheduledTime || '';
+    gameName = extras.gameName || '';
+  } else if (hostSetupMode === 'planned') {
+    const namesRaw = document.getElementById('host-names-list').value;
+    allowedNames = namesRaw.split('\n').map(s => s.trim()).filter(Boolean);
+    scheduledTime = document.getElementById('host-scheduled-time').value;
+  }
 
   const roomData = {
     hostId: hostPlayerId,
@@ -1369,6 +1549,7 @@ function createRoom() {
   };
   if (allowedNames.length) roomData.allowedNames = allowedNames;
   if (scheduledTime) roomData.scheduledTime = scheduledTime;
+  if (gameName) roomData.gameName = gameName;
 
   const writePromise = db.ref('rooms/' + hostRoomCode).set(roomData);
   const timeoutPromise = new Promise((_, reject) => {
@@ -1376,6 +1557,7 @@ function createRoom() {
   });
 
   Promise.race([writePromise, timeoutPromise]).then(() => {
+    pendingRoomExtras = null;
     showScreen('host-screen');
     listenHostRoom();
   }).catch(err => {
@@ -1485,6 +1667,7 @@ function hostAdvanceToQuestion(idx) {
         image: q.image || null,
         video: q.video || null,
         sample: !!q.sample,
+        duration: q.duration || hostSettings.duration,
         startAt: null
       }
     });
@@ -1504,12 +1687,13 @@ function hostAdvanceToQuestion(idx) {
       image: q.image || null,
       video: q.video || null,
       sample: !!q.sample,
+      duration: q.duration || hostSettings.duration,
       startAt: startAt
     }
   };
   updates['questionMeta/' + idx] = { text: q.text, startAt: startAt };
   db.ref('rooms/' + hostRoomCode).update(updates);
-  hostQuestionTimer = setTimeout(() => hostEndQuestion(idx), hostSettings.duration * 1000 + 500);
+  hostQuestionTimer = setTimeout(() => hostEndQuestion(idx), (q.duration || hostSettings.duration) * 1000 + 500);
 }
 
 function hostRestartQuestion() {
@@ -1530,7 +1714,7 @@ function hostBeginQuestionAfterVideo() {
   };
   updates['questionMeta/' + idx] = { text: hostQuestions[idx].text, startAt: startAt };
   db.ref('rooms/' + hostRoomCode).update(updates);
-  hostQuestionTimer = setTimeout(() => hostEndQuestion(idx), hostSettings.duration * 1000 + 500);
+  hostQuestionTimer = setTimeout(() => hostEndQuestion(idx), ((hostQuestions[idx] && hostQuestions[idx].duration) || hostSettings.duration) * 1000 + 500);
 }
 
 function renderHostVideo(content) {
@@ -2554,7 +2738,7 @@ function afterPinSuccess() {
     showHostSetupScreen();
   } else if (pinLockTarget === 'plannedHost') {
     hostSetupMode = 'planned';
-    showHostSetupScreen();
+    openPlanWizard();
   } else {
     captureEntryPhoto();
     openAdminPanel();
@@ -3215,6 +3399,399 @@ function setCustomTimeLimit() {
   document.getElementById('custom-time-input').value = '';
 }
 
+
+/* ===================== אשף הכנת משחק (שלב אחרי שלב) ===================== */
+const PLAN_DRAFT_KEY = 'trivia_plan_draft';
+let planStep = 0;
+let planOpenSlot = -1;
+let planPickerSearch = '';
+let planDraft = {
+  name: '',
+  count: 10,
+  source: 'all',
+  questions: [],
+  timeMode: 'same',
+  duration: 20,
+  names: '',
+  time: ''
+};
+
+function planEscText(s) {
+  return String(s == null ? '' : s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+}
+function planEscAttr(s) {
+  return planEscText(s).replace(/"/g, '&quot;');
+}
+
+function loadPlanDraft() {
+  try {
+    const d = JSON.parse(localStorage.getItem(PLAN_DRAFT_KEY));
+    if (d) planDraft = Object.assign(planDraft, d);
+  } catch (e) {}
+  planFixSlots();
+}
+function savePlanDraft() {
+  try { localStorage.setItem(PLAN_DRAFT_KEY, JSON.stringify(planDraft)); } catch (e) {}
+}
+function planSet(key, val) {
+  planDraft[key] = val;
+  savePlanDraft();
+}
+function planPick(key, val) {
+  planSet(key, val);
+  renderPlanWizard();
+}
+
+// שומר על רשימת השאלות באורך שמתאים למספר השאלות שנבחר
+function planFixSlots() {
+  const arr = Array.isArray(planDraft.questions) ? planDraft.questions : [];
+  const fixed = [];
+  for (let i = 0; i < planDraft.count; i++) {
+    const s = arr[i];
+    fixed.push(s ? { text: s.text || null, sample: !!s.sample, duration: s.duration || null }
+                 : { text: null, sample: false, duration: null });
+  }
+  planDraft.questions = fixed;
+}
+
+// בנק השאלות של נושא מסוים, בלי לשנות את ההגדרה הקבועה של המשחק
+function planBankFor(source) {
+  const prev = getQuestionSourceMode();
+  setQuestionSourceMode(source);
+  const bank = getCombinedBank();
+  setQuestionSourceMode(prev);
+  return bank;
+}
+
+function planSourceOptions() {
+  const opts = [['all', '🔀 הכל'], ['builtin', '📚 כלליות'], ['haredi', '📖 יהדות'], ['geo', '🗺️ גיאוגרפיה'], ['custom', '📋 השאלות שלי']];
+  getAllCategoriesList().forEach(c => opts.push(['cat:' + c.id, '🗂️ ' + c.name]));
+  return opts;
+}
+
+function planSourceLabel(val) {
+  const found = planSourceOptions().find(o => o[0] === val);
+  return found ? found[1] : '🔀 הכל';
+}
+
+const PLAN_STEPS = [
+  { title: 'איך קוראים למשחק?', sub: 'שם קצר שיעזור לך לזכור איזה משחק זה. לדוגמה: "מסיבת כיתה".' },
+  { title: 'כמה שאלות יהיו במשחק?', sub: 'אפשר לבחור מספר מוכן או להקליד מספר משלך.' },
+  { title: 'בחירת השאלות', sub: 'תבחר שאלה אחרי שאלה. מה שלא תבחר - ייבחר אקראית בשבילך.' },
+  { title: 'כמה זמן לכל שאלה?', sub: 'אפשר זמן אחיד לכל המשחק, או זמן נפרד לכל שאלה.' },
+  { title: 'מי משחק?', sub: 'כתוב כל שם בשורה נפרדת. מי שייכנס עם הקישור יבחר את השם שלו מהרשימה.' },
+  { title: 'הכל מוכן!', sub: 'תבדוק שהכל נכון, ואז ניצור את המשחק עם קוד וקישור להזמנה.' }
+];
+
+function openPlanWizard() {
+  loadPlanDraft();
+  planStep = 0;
+  planOpenSlot = -1;
+  planPickerSearch = '';
+  showScreen('plan-screen');
+  renderPlanWizard();
+}
+
+function planStepperHtml() {
+  let h = '<div class="plan-steps">';
+  PLAN_STEPS.forEach((s, i) => {
+    const cls = i < planStep ? 'done' : (i === planStep ? 'now' : '');
+    h += '<div class="plan-step">';
+    h += '<div class="plan-dot ' + cls + '" onclick="planGoTo(' + i + ')">' + (i < planStep ? '✓' : (i + 1)) + '</div>';
+    if (i < PLAN_STEPS.length - 1) h += '<div class="plan-line ' + (i < planStep ? 'done' : '') + '"></div>';
+    h += '</div>';
+  });
+  return h + '</div>';
+}
+
+/* ---------- שלב 3: בחירת שאלה אחרי שאלה ---------- */
+
+function planSlotsHtml() {
+  let h = '<div class="plan-opts" style="margin-bottom:14px;">' +
+    '<button class="plan-opt" onclick="planFillRandom()">🎲 מלא את מה שחסר באקראי</button>' +
+    '<button class="plan-opt" onclick="planClearAll()">🗑️ נקה הכל</button>' +
+    '</div>';
+  h += '<div class="plan-slots">';
+  planDraft.questions.forEach((slot, i) => {
+    const open = planOpenSlot === i;
+    h += '<div class="plan-slot' + (slot.text ? ' filled' : '') + (open ? ' open' : '') + '">';
+    h += '<button class="plan-slot-head" onclick="planToggleSlot(' + i + ')">' +
+      '<span class="plan-slot-num">' + (i + 1) + '</span>' +
+      '<span class="plan-slot-txt">' + (slot.text ? (slot.sample ? '🎯 ' : '') + planEscText(slot.text) : 'עוד לא נבחרה שאלה - לחץ לבחור') + '</span>' +
+      '<span class="plan-slot-arrow">' + (open ? '▲' : '▼') + '</span>' +
+      '</button>';
+    if (slot.text) {
+      h += '<label class="plan-check"><input type="checkbox"' + (slot.sample ? ' checked' : '') +
+        ' onchange="planToggleSample(' + i + ', this.checked)"> שאלת דוגמה 🎯 (התשובה לא נחשבת לניקוד)</label>';
+    }
+    if (open) {
+      h += '<div class="plan-picker">' +
+        '<div class="plan-opts plan-picker-filters">';
+      planSourceOptions().forEach(([val, label]) => {
+        h += '<button class="plan-opt' + (planDraft.source === val ? ' selected' : '') + '" onclick="planSetPickerSource(\'' + val + '\')">' + label + '</button>';
+      });
+      h += '</div>' +
+        '<input type="text" class="plan-search" placeholder="חיפוש שאלה..." value="' + planEscAttr(planPickerSearch) + '" oninput="planPickerSearch = this.value; planRenderPickerList(' + i + ');">' +
+        '<div class="plan-picker-list" id="plan-picker-list">' + planPickerListHtml(i) + '</div>' +
+        '</div>';
+    }
+    h += '</div>';
+  });
+  h += '</div>';
+  const chosen = planDraft.questions.filter(s => s.text).length;
+  h += '<p class="plan-hint">נבחרו ' + chosen + ' מתוך ' + planDraft.count + ' שאלות.</p>';
+  return h;
+}
+
+function planPickerListHtml(slotIndex) {
+  const bank = planBankFor(planDraft.source);
+  const term = planPickerSearch.trim();
+  const filtered = term ? bank.filter(q => q.q.indexOf(term) !== -1) : bank;
+  if (!filtered.length) return '<div class="plan-picker-empty">לא נמצאו שאלות</div>';
+  const used = planDraft.questions.map((s, i) => i === slotIndex ? null : s.text).filter(Boolean);
+  return filtered.slice(0, 300).map(q => {
+    const isUsed = used.indexOf(q.q) !== -1;
+    const isCurrent = planDraft.questions[slotIndex].text === q.q;
+    return '<div class="plan-picker-item' + (isCurrent ? ' current' : '') + (isUsed ? ' used' : '') + '" onclick="planChoose(' + slotIndex + ', ' + JSON.stringify(q.q).replace(/"/g, '&quot;') + ')">' +
+      (isCurrent ? '✅ ' : (isUsed ? '↩️ ' : '')) + planEscText(q.q) + '</div>';
+  }).join('');
+}
+
+function planRenderPickerList(slotIndex) {
+  const el = document.getElementById('plan-picker-list');
+  if (el) el.innerHTML = planPickerListHtml(slotIndex);
+}
+
+function planSetPickerSource(val) {
+  planDraft.source = val;
+  savePlanDraft();
+  renderPlanWizard();
+}
+
+function planToggleSlot(i) {
+  planOpenSlot = (planOpenSlot === i) ? -1 : i;
+  planPickerSearch = '';
+  renderPlanWizard();
+}
+
+function planChoose(i, text) {
+  planDraft.questions[i].text = text;
+  planOpenSlot = -1;
+  planPickerSearch = '';
+  savePlanDraft();
+  renderPlanWizard();
+}
+
+function planToggleSample(i, val) {
+  planDraft.questions[i].sample = val;
+  savePlanDraft();
+}
+
+function planFillRandom() {
+  const bank = planBankFor(planDraft.source);
+  const used = planDraft.questions.map(s => s.text).filter(Boolean);
+  const pool = shuffleArray(bank.filter(q => used.indexOf(q.q) === -1));
+  let p = 0;
+  planDraft.questions.forEach(slot => {
+    if (!slot.text && pool[p]) { slot.text = pool[p].q; p++; }
+  });
+  savePlanDraft();
+  renderPlanWizard();
+}
+
+function planClearAll() {
+  planDraft.questions.forEach(slot => { slot.text = null; slot.sample = false; });
+  savePlanDraft();
+  renderPlanWizard();
+}
+
+/* ---------- שלב 4: זמן ---------- */
+
+function planTimeHtml() {
+  let h = '<div class="plan-opts" style="margin-bottom:16px;">' +
+    '<button class="plan-opt' + (planDraft.timeMode === 'same' ? ' selected' : '') + '" onclick="planPick(\'timeMode\', \'same\')">⏱️ זמן אחיד לכל השאלות</button>' +
+    '<button class="plan-opt' + (planDraft.timeMode === 'each' ? ' selected' : '') + '" onclick="planPick(\'timeMode\', \'each\')">🎚️ זמן נפרד לכל שאלה</button>' +
+    '</div>';
+  if (planDraft.timeMode === 'same') {
+    h += '<div class="plan-opts">';
+    [10, 15, 20, 30, 45].forEach(n => {
+      h += '<button class="plan-opt' + (planDraft.duration === n ? ' selected' : '') + '" onclick="planPick(\'duration\', ' + n + ')">' + n + ' שניות</button>';
+    });
+    h += '</div>';
+    h += '<label class="plan-label">או מספר שניות אחר</label>' +
+      '<input type="text" id="plan-duration-custom" inputmode="numeric" maxlength="3" placeholder="לדוגמה 25">' +
+      '<div class="plan-nav" style="margin-top:10px;"><button class="plan-btn" onclick="planApplyCustomDuration()">✓ קבע זמן</button></div>' +
+      '<p class="plan-hint">כרגע: <b>' + planDraft.duration + '</b> שניות לכל שאלה.</p>';
+    return h;
+  }
+  h += '<p class="plan-hint" style="margin-bottom:10px;">אם תשאיר שדה ריק - השאלה הזו תקבל ' + planDraft.duration + ' שניות.</p>';
+  h += '<div class="plan-slots">';
+  planDraft.questions.forEach((slot, i) => {
+    h += '<div class="plan-time-row">' +
+      '<span class="plan-slot-num">' + (i + 1) + '</span>' +
+      '<span class="plan-time-txt">' + (slot.text ? planEscText(slot.text) : 'שאלה אקראית') + '</span>' +
+      '<input type="text" class="plan-time-input" inputmode="numeric" maxlength="3" value="' + (slot.duration || '') + '" placeholder="' + planDraft.duration + '" oninput="planSetSlotDuration(' + i + ', this.value)">' +
+      '<span class="plan-time-unit">שניות</span>' +
+      '</div>';
+  });
+  h += '</div>';
+  return h;
+}
+
+function planSetSlotDuration(i, val) {
+  const n = parseInt(val, 10);
+  planDraft.questions[i].duration = (n && n > 0 && n <= 600) ? n : null;
+  savePlanDraft();
+}
+
+function planApplyCustomDuration() {
+  const el = document.getElementById('plan-duration-custom');
+  const val = parseInt(el.value, 10);
+  if (!val || val <= 0 || val > 600) { alert('תכניס מספר שניות בין 1 ל-600'); return; }
+  planPick('duration', val);
+}
+
+function planApplyCustomCount() {
+  const el = document.getElementById('plan-count-custom');
+  const val = parseInt(el.value, 10);
+  const bankSize = planBankFor(planDraft.source).length;
+  if (!val || val <= 0 || val > 100) { alert('תכניס מספר בין 1 ל-100'); return; }
+  if (val > bankSize) { alert('בנושא שבחרת יש רק ' + bankSize + ' שאלות'); return; }
+  planDraft.count = val;
+  planFixSlots();
+  savePlanDraft();
+  renderPlanWizard();
+}
+
+function planSetCount(n) {
+  planDraft.count = n;
+  planFixSlots();
+  savePlanDraft();
+  renderPlanWizard();
+}
+
+/* ---------- גוף השלבים ---------- */
+
+function planStepBodyHtml() {
+  const d = planDraft;
+  if (planStep === 0) {
+    return '<label class="plan-label">שם המשחק</label>' +
+      '<input type="text" id="plan-name" maxlength="30" placeholder="לדוגמה: מסיבת כיתה" value="' + planEscAttr(d.name) + '" oninput="planSet(\'name\', this.value)">' +
+      '<p class="plan-hint">אם תשאיר ריק - נקרא לזה פשוט "קרב מוחות".</p>';
+  }
+  if (planStep === 1) {
+    let h = '<div class="plan-opts">';
+    [5, 10, 15, 20].forEach(n => {
+      h += '<button class="plan-opt' + (d.count === n ? ' selected' : '') + '" onclick="planSetCount(' + n + ')">' + n + '</button>';
+    });
+    h += '</div>';
+    h += '<label class="plan-label">או מספר אחר</label>' +
+      '<input type="text" id="plan-count-custom" inputmode="numeric" maxlength="3" placeholder="לדוגמה 12">' +
+      '<div class="plan-nav" style="margin-top:10px;"><button class="plan-btn" onclick="planApplyCustomCount()">✓ קבע מספר</button></div>' +
+      '<p class="plan-hint">כרגע: <b>' + d.count + '</b> שאלות במשחק.</p>';
+    return h;
+  }
+  if (planStep === 2) return planSlotsHtml();
+  if (planStep === 3) return planTimeHtml();
+  if (planStep === 4) {
+    const count = d.names.split('\n').map(s => s.trim()).filter(Boolean).length;
+    return '<label class="plan-label">רשימת שמות (רשות)</label>' +
+      '<textarea id="plan-names" placeholder="דני&#10;יוסי&#10;רותם" oninput="planSet(\'names\', this.value); planUpdateNamesCount(this.value);">' + planEscText(d.names) + '</textarea>' +
+      '<p class="plan-hint">ברשימה יש <b id="plan-names-count">' + count + '</b> משתתפים. אם תשאיר ריק - כל אחד יקליד את השם שלו בעצמו.</p>' +
+      '<label class="plan-label">שעת פתיחה משוערת (רשות)</label>' +
+      '<input type="time" id="plan-time" value="' + planEscAttr(d.time) + '" oninput="planSet(\'time\', this.value)">' +
+      '<p class="plan-hint">זה רק מוצג למשתתפים - אתה עדיין תלחץ "התחילו" בעצמך.</p>';
+  }
+  // סיכום
+  const names = d.names.split('\n').map(s => s.trim()).filter(Boolean);
+  const chosen = d.questions.filter(s => s.text).length;
+  const samples = d.questions.filter(s => s.text && s.sample).length;
+  let h = '<div class="plan-sum">';
+  h += '<div class="plan-sum-row"><b>שם המשחק</b><span>' + planEscText(d.name || 'קרב מוחות') + '</span></div>';
+  h += '<div class="plan-sum-row"><b>כמה שאלות</b><span>' + d.count + '</span></div>';
+  h += '<div class="plan-sum-row"><b>שאלות שבחרת</b><span>' + chosen + ' (השאר אקראי מתוך ' + planSourceLabel(d.source) + ')</span></div>';
+  if (samples) h += '<div class="plan-sum-row"><b>שאלות דוגמה</b><span>' + samples + '</span></div>';
+  h += '<div class="plan-sum-row"><b>זמן</b><span>' + (d.timeMode === 'same' ? d.duration + ' שניות לכל שאלה' : 'זמן נפרד לכל שאלה') + '</span></div>';
+  h += '<div class="plan-sum-row"><b>משתתפים</b><span>' + (names.length ? planEscText(names.join(', ')) : 'כל אחד יקליד שם בעצמו') + '</span></div>';
+  h += '<div class="plan-sum-row"><b>שעת פתיחה</b><span>' + (d.time || 'לא נקבעה') + '</span></div>';
+  h += '</div>';
+  return h;
+}
+
+function planUpdateNamesCount(val) {
+  const el = document.getElementById('plan-names-count');
+  if (el) el.textContent = val.split('\n').map(s => s.trim()).filter(Boolean).length;
+}
+
+function renderPlanWizard() {
+  planFixSlots();
+  const content = document.getElementById('plan-content');
+  const step = PLAN_STEPS[planStep];
+  const last = planStep === PLAN_STEPS.length - 1;
+  content.innerHTML =
+    '<div class="adm-topbar"><div class="adm-topbar-in">' +
+      '<div class="adm-brand"><div class="adm-brand-mark">🎬</div>' +
+      '<div class="adm-brand-txt"><b>הכנת משחק</b><span>קרב מוחות</span></div></div>' +
+      '<button class="adm-back" onclick="showScreen(\'menu-screen\')">⬅️ תפריט ראשי</button>' +
+    '</div></div>' +
+    '<div class="plan-wrap">' +
+      planStepperHtml() +
+      '<div class="plan-card">' +
+        '<p class="plan-kicker">שלב ' + (planStep + 1) + ' מתוך ' + PLAN_STEPS.length + '</p>' +
+        '<h2 class="plan-title">' + step.title + '</h2>' +
+        '<p class="plan-sub">' + step.sub + '</p>' +
+        planStepBodyHtml() +
+      '</div>' +
+      '<div class="plan-nav">' +
+        (planStep > 0 ? '<button class="plan-btn" onclick="planBack()">⬅️ חזרה</button>' : '') +
+        '<div class="plan-spacer"></div>' +
+        (last
+          ? '<button class="plan-btn go" id="plan-create-btn" onclick="planCreateGame()">🚀 צור את המשחק</button>'
+          : '<button class="plan-btn primary" onclick="planNext()">הבא ➡️</button>') +
+      '</div>' +
+    '</div>';
+  window.scrollTo(0, 0);
+}
+
+function planGoTo(i) {
+  if (i < 0 || i >= PLAN_STEPS.length) return;
+  planStep = i;
+  planOpenSlot = -1;
+  renderPlanWizard();
+}
+
+function planBack() { planGoTo(planStep - 1); }
+function planNext() { planGoTo(planStep + 1); }
+
+function planCreateGame() {
+  const bank = planBankFor(planDraft.source);
+  const fullBank = planBankFor('all');
+  const used = planDraft.questions.map(s => s.text).filter(Boolean);
+  const pool = shuffleArray(bank.filter(q => used.indexOf(q.q) === -1));
+  let p = 0;
+  const built = [];
+  planDraft.questions.forEach(slot => {
+    let item = null;
+    if (slot.text) item = fullBank.find(q => q.q === slot.text);
+    if (!item) { item = pool[p]; p++; }
+    if (!item) return;
+    const inst = buildQuestionInstance(item);
+    inst.sample = !!slot.sample;
+    if (planDraft.timeMode === 'each' && slot.duration) inst.duration = slot.duration;
+    built.push(inst);
+  });
+  if (!built.length) { alert('אין מספיק שאלות בנושא שבחרת'); return; }
+
+  hostSettings.count = built.length;
+  hostSettings.duration = planDraft.duration;
+  pendingRoomExtras = {
+    questions: built,
+    allowedNames: planDraft.names.split('\n').map(s => s.trim()).filter(Boolean),
+    scheduledTime: planDraft.time || '',
+    gameName: planDraft.name.trim()
+  };
+  createRoom();
+}
 checkJoinLinkOnLoad();
 </script>
 </body>
