@@ -3182,7 +3182,7 @@ function renderAdminTab() {
           return '<div class="adm-theme-card' + (on ? ' on' : '') + '">' +
             '<div class="adm-theme-prev" style="background:' + previews[key] + ';">' + t.mark + '</div>' +
             '<div class="adm-theme-info"><b>' + t.label + '</b><span>' + t.sub + '</span>' +
-            '<span class="adm-theme-name">' + t.title1 + ' ' + t.title2 + '</span></div>' +
+            '<span class="adm-theme-name">' + t.tagline + '</span></div>' +
             (on ? '<span class="adm-theme-on">✓ נבחר</span>'
                 : '<button class="small-btn" onclick="setGameTheme(\'' + key + '\')">בחר</button>') +
             '</div>';
@@ -4296,11 +4296,11 @@ const GAME_THEMES = {
     tagline: 'מי יהיה אלוף הידע היום?'
   },
   silver: {
-    label: 'חגיגי - חתונת כסף',
+    label: 'חגיגי',
     sub: 'כסף וזהב על רקע כהה, לאירוע משפחתי',
     mark: '💍',
-    title1: 'חתונת',
-    title2: 'הכסף',
+    title1: 'קרב',
+    title2: 'מוחות',
     tagline: '25 שנה לאבא ואמא 💍'
   }
 };
