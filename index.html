@@ -51,6 +51,47 @@
     position: relative;
   }
 
+
+  /* ===== עיצוב חגיגי - חתונת כסף (העיצוב הרגיל נשמר ואפשר לחזור אליו בניהול) ===== */
+  body[data-game-theme="silver"]{
+    --ink:#F3F6FC;
+    --paper:#0C1226;
+    --panel:#17213E;
+    --panel-line: rgba(226,232,240,.17);
+    --text:#F3F6FC;
+    --text-soft: rgba(243,246,252,.66);
+    --accent:#E6C06A;
+    --accent-ink:#362600;
+    --accent2:#6E7FE8;
+    --good:#3FC98A;
+    --bad:#FF6B6B;
+    --shadow: 225 65% 3%;
+    background:
+      radial-gradient(1100px 560px at 50% -12%, rgba(230,192,106,.20), transparent 62%),
+      radial-gradient(900px 500px at 8% 108%, rgba(175,192,221,.16), transparent 62%),
+      #0C1226;
+    background-attachment: fixed;
+  }
+  body[data-game-theme="silver"] h1 .spark{
+    background: linear-gradient(180deg, #FFFFFF 0%, #DCE3EE 42%, #9FAEC4 100%);
+    -webkit-background-clip: text; background-clip: text; color: transparent;
+  }
+  body[data-game-theme="silver"] .brand-mark{
+    background: linear-gradient(145deg, #F0E2B4 0%, #D7B567 45%, #9C7A2E 100%);
+    box-shadow: 0 6px 18px rgba(230,192,106,.26), inset 0 0 0 1px rgba(255,255,255,.35);
+  }
+  body[data-game-theme="silver"] .tile{
+    box-shadow: inset 0 0 0 1.5px rgba(230,192,106,.26), 0 2px 0 hsl(var(--shadow) / .5);
+  }
+  body[data-game-theme="silver"] .tile.solo{ box-shadow: inset 0 0 0 2px var(--accent2), 0 2px 0 hsl(var(--shadow) / .5); }
+  body[data-game-theme="silver"] .tile.host{ box-shadow: inset 0 0 0 2px var(--accent), 0 2px 0 hsl(var(--shadow) / .5); }
+  body[data-game-theme="silver"] .question-box{
+    box-shadow: inset 0 0 0 1.5px rgba(230,192,106,.3);
+  }
+  body[data-game-theme="silver"] table.leaderboard th{
+    background: color-mix(in srgb, var(--accent) 22%, var(--panel));
+  }
+  body[data-game-theme="silver"] .room-code{ color: var(--accent); }
   .screen { position: relative; z-index: 1; display: none; min-height: 100vh; padding: 20px; flex-direction: column; align-items: center; }
   .screen.active { display: flex; }
 
@@ -350,6 +391,22 @@
   .plan-time-txt{ flex:1 1 auto; min-width:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
   #plan-screen .plan-time-input{ flex:0 0 78px; width:78px; text-align:center; padding:8px; font-size:.95em; }
   .plan-time-unit{ flex:0 0 auto; color:var(--adm-muted); font-size:.9em; }
+  /* שקופית תמונה/סרטון במשחק */
+  .slide-wrap{ width:100%; max-width:760px; margin:0 auto 6px; text-align:center; }
+  .slide-title{ font-family:'Suez One','Assistant',sans-serif; font-weight:400; font-size:1.7em; margin:6px 0 16px; }
+  .slide-wrap .question-image{ max-height:52vh; }
+  .slide-text{ font-size:.95em; color:var(--text-soft); margin:6px 0 18px; }
+
+  /* הוספת שקופית בתוך האשף */
+  .plan-insert{
+    display:block; width:100%; font-family:inherit; font-size:.68em; font-weight:700;
+    color:var(--adm-muted); background:none; border:1px dashed var(--adm-line);
+    border-radius:7px; padding:6px; cursor:pointer;
+  }
+  .plan-insert:hover{ color:var(--adm-accent); border-color:var(--adm-accent); background:var(--adm-accent-soft); }
+  .plan-slot.slide{ background:var(--adm-accent-soft); border-color:var(--adm-accent); }
+  .plan-slot.slide .plan-slot-num{ background:var(--adm-accent); color:#fff; }
+  .plan-slide-prev img{ max-width:100%; max-height:180px; border-radius:8px; display:block; margin:0 0 8px; }
   @media (max-width:560px){
     .plan-wrap{ padding:14px 12px 40px; }
     .plan-card{ padding:18px; }
@@ -480,6 +537,23 @@
     align-items:center; justify-content:center; padding:20px;
   }
   #admin-lock-screen .card{ max-width:470px; }
+  #admin-panel-screen .adm-theme-card{
+    display:flex; align-items:center; gap:14px;
+    border:1px solid var(--adm-line); border-radius:10px;
+    padding:12px; margin-top:12px; background:var(--adm-surface-2);
+  }
+  #admin-panel-screen .adm-theme-card.on{ border-color:var(--adm-accent); background:var(--adm-accent-soft); }
+  #admin-panel-screen .adm-theme-prev{
+    flex:0 0 auto; width:58px; height:58px; border-radius:10px;
+    display:grid; place-items:center; font-size:26px;
+    box-shadow: inset 0 0 0 1px rgba(0,0,0,.12);
+  }
+  #admin-panel-screen .adm-theme-info{ flex:1 1 auto; min-width:0; }
+  #admin-panel-screen .adm-theme-info b{ display:block; font-size:.92em; font-weight:800; }
+  #admin-panel-screen .adm-theme-info span{ display:block; font-size:.78em; color:var(--adm-muted); }
+  #admin-panel-screen .adm-theme-name{ font-weight:700; margin-top:3px; }
+  #admin-panel-screen .adm-theme-on{ flex:0 0 auto; font-size:.8em; font-weight:800; color:var(--adm-accent); }
+  #admin-panel-screen .adm-theme-card .small-btn{ flex:0 0 auto; margin:0; }
 
   @media (max-width: 860px){
     .adm-shell{ flex-direction:column; padding:14px 12px 34px; gap:14px; }
@@ -615,6 +689,25 @@
   }
   .choice-btn.wrong-picked { box-shadow: inset 0 0 0 2.5px var(--bad); background: color-mix(in srgb, var(--bad) 14%, var(--panel)); }
   @media (prefers-reduced-motion: reduce){ .choice-btn.correct-answer{ animation:none; } }
+  /* התשובה שנבחרה גדלה ובולטת עד שהזמן נגמר */
+  .choice-btn.picked, .choice-btn.picked:disabled {
+    opacity: 1;
+    transform: scale(1.07);
+    box-shadow: inset 0 0 0 3px var(--accent2), 0 10px 26px hsl(var(--shadow) / .22);
+    position: relative; z-index: 3;
+    animation: pickGrow .32s ease;
+  }
+  @keyframes pickGrow {
+    0% { transform: scale(1); }
+    60% { transform: scale(1.14); }
+    100% { transform: scale(1.07); }
+  }
+  .choice-btn.faded, .choice-btn.faded:disabled { opacity: .3; }
+  @media (prefers-reduced-motion: reduce){ .choice-btn.picked{ animation:none; } }
+  .answered-note {
+    font-weight: 800; font-size: .85em; text-align: center;
+    color: var(--accent2); margin: 0 0 12px;
+  }
 
   .feedback-banner { font-size: 1.3em; font-weight: 800; margin: 14px 0; text-align: center; color: var(--text); }
 
@@ -653,8 +746,8 @@
 
 <!-- ===== תפריט ראשי ===== -->
 <div id="menu-screen" class="screen active">
-  <div class="brand"><span class="brand-mark">🧠</span><h1>קרב <span class="spark">מוחות</span></h1></div>
-  <p class="tagline">מי יהיה אלוף הידע היום?</p>
+  <div class="brand"><span class="brand-mark" id="brand-mark">🧠</span><h1 id="brand-title">קרב <span class="spark">מוחות</span></h1></div>
+  <p class="tagline" id="brand-tagline">מי יהיה אלוף הידע היום?</p>
   <div class="tile-grid">
     <button class="tile solo" onclick="goSolo()"><span class="tile-ico">🧍</span><span class="tile-lbl">שחקן יחיד</span></button>
     <button class="tile host" onclick="goHostSetup()"><span class="tile-ico">📺</span><span class="tile-lbl">אני המנחה</span></button>
@@ -928,6 +1021,7 @@ const FIREBASE_CONFIG = {
 function showScreen(id) {
   document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
   document.getElementById(id).classList.add('active');
+  if (id === "menu-screen" || id === "solo-screen") applyGameTheme();
 }
 
 /* ===================== צלילים ===================== */
@@ -1205,6 +1299,7 @@ function pickNameAndJoin(code, name) {
   playerId = getPlayerId();
   playerAnsweredIndex = -1;
   playerAnsweredStartAt = null;
+  playerAnsweredChoice = -1;
   const ref = db.ref('rooms/' + code + '/players/' + playerId);
   ref.set({ name, score: 0, joinedAt: firebase.database.ServerValue.TIMESTAMP });
   ref.onDisconnect().remove();
@@ -1542,9 +1637,10 @@ function createRoom() {
     hostId: hostPlayerId,
     createdAt: firebase.database.ServerValue.TIMESTAMP,
     phase: 'lobby',
-    totalQuestions: hostQuestions.length,
+    totalQuestions: hostQuestions.filter(q => q.type !== "slide").length,
     questionIndex: -1,
     duration: hostSettings.duration,
+    theme: getGameTheme(),
     players: {}
   };
   if (allowedNames.length) roomData.allowedNames = allowedNames;
@@ -1575,9 +1671,11 @@ function listenHostRoom() {
 
 function renderHost() {
   const content = document.getElementById('host-content');
+  if (hostRoomState) applyGameTheme(hostRoomState.theme);
   const phase = hostRoomState.phase;
   if (phase === 'lobby') renderHostLobby(content);
   else if (phase === 'video') renderHostVideo(content);
+  else if (phase === 'slide') renderHostSlide(content);
   else if (phase === 'question') renderHostQuestion(content);
   else if (phase === 'reveal') renderHostReveal(content);
   else if (phase === 'finished') renderHostFinal(content);
@@ -1653,6 +1751,22 @@ function hostAdvanceToQuestion(idx) {
     return;
   }
   const q = hostQuestions[idx];
+  if (q.type === 'slide') {
+    db.ref('rooms/' + hostRoomCode).update({
+      phase: 'slide',
+      questionIndex: idx,
+      broadcastLeaderboard: false,
+      paused: false,
+      pausedAt: null,
+      currentSlide: {
+        title: q.title || '',
+        text: q.text || '',
+        image: q.image || null,
+        video: q.video || null
+      }
+    });
+    return;
+  }
   if (q.video) {
     db.ref('rooms/' + hostRoomCode).update({
       phase: 'video',
@@ -1668,6 +1782,7 @@ function hostAdvanceToQuestion(idx) {
         video: q.video || null,
         sample: !!q.sample,
         duration: q.duration || hostSettings.duration,
+        qNum: q.qNum || null,
         startAt: null
       }
     });
@@ -1688,6 +1803,7 @@ function hostAdvanceToQuestion(idx) {
       video: q.video || null,
       sample: !!q.sample,
       duration: q.duration || hostSettings.duration,
+      qNum: q.qNum || null,
       startAt: startAt
     }
   };
@@ -1717,11 +1833,39 @@ function hostBeginQuestionAfterVideo() {
   hostQuestionTimer = setTimeout(() => hostEndQuestion(idx), ((hostQuestions[idx] && hostQuestions[idx].duration) || hostSettings.duration) * 1000 + 500);
 }
 
+/* ---------- שקופית של תמונה או סרטון בין השאלות ---------- */
+function slideMediaHtml(s) {
+  let html = '';
+  if (s.title) html += '<h2 class="slide-title">' + s.title + '</h2>';
+  html += questionMediaHtml({ image: s.image, video: s.video });
+  if (s.text) html += '<div class="slide-text">' + s.text + '</div>';
+  return html;
+}
+
+function renderHostSlide(content) {
+  const s = hostRoomState.currentSlide || {};
+  const idx = hostRoomState.questionIndex;
+  content.innerHTML = `
+    <div class="slide-wrap">${slideMediaHtml(s)}</div>
+    <button class="big-btn green" onclick="hostAdvanceToQuestion(${idx + 1})">➡️ ממשיכים</button>
+    <button class="small-btn" onclick="hostStopGame()">🛑 עצור משחק</button>
+    ${renderHostMgmtToggleHtml()}
+    ${renderHostMgmtPanelHtml()}
+  `;
+}
+
+function renderPlayerSlide(content) {
+  const s = playerRoomState.currentSlide || {};
+  content.innerHTML = `
+    <div class="slide-wrap">${slideMediaHtml(s)}</div>
+    <div class="muted center-text">מסתכלים ביחד... המנחה ימשיך עוד רגע</div>
+  `;
+}
 function renderHostVideo(content) {
   const q = hostRoomState.currentQuestion;
   const idx = hostRoomState.questionIndex;
   content.innerHTML = `
-    <div class="progress-label center-text">שאלה ${idx + 1} מתוך ${hostRoomState.totalQuestions}</div>
+    <div class="progress-label center-text">שאלה ${q.qNum || idx + 1} מתוך ${hostRoomState.totalQuestions}</div>
     <div class="muted center-text" style="margin-bottom:10px;">צפו בסרטון עם השחקנים, ואז תלחצו להתחיל את השאלה</div>
     ${questionMediaHtml(q)}
     <button class="big-btn green" onclick="hostBeginQuestionAfterVideo()">▶️ סיימנו לצפות - התחילו בשאלה!</button>
@@ -1873,7 +2017,7 @@ function renderHostQuestion(content) {
   const paused = !!hostRoomState.paused;
   const duration = q.duration || hostRoomState.duration;
   content.innerHTML = `
-    <div class="progress-label center-text">שאלה ${idx + 1} מתוך ${hostRoomState.totalQuestions}</div>
+    <div class="progress-label center-text">שאלה ${q.qNum || idx + 1} מתוך ${hostRoomState.totalQuestions}</div>
     ${q.sample ? '<div class="feedback-banner" style="font-size:.9em; background:#fff3cd; color:#7a5b00;">🎯 שאלת דוגמה - לא נספרת בניקוד</div>' : ''}
     ${paused ? '<div class="feedback-banner" style="font-size:1em;">⏸️ המשחק מושהה</div>' : ''}
     <div class="timer-bar-outer"><div class="timer-bar-inner" id="host-timer-bar"></div></div>
@@ -2037,6 +2181,7 @@ let playerId = null;
 let playerRoomState = null;
 let playerAnsweredIndex = -1;
 let playerAnsweredStartAt = null;
+let playerAnsweredChoice = -1;
 
 function goJoinSetup() {
   if (!firebaseReady) { showScreen('not-configured-screen'); return; }
@@ -2065,6 +2210,7 @@ function joinRoom() {
     playerId = getPlayerId();
     playerAnsweredIndex = -1;
     playerAnsweredStartAt = null;
+    playerAnsweredChoice = -1;
     const ref = db.ref('rooms/' + code + '/players/' + playerId);
     ref.set({ name, score: 0, joinedAt: firebase.database.ServerValue.TIMESTAMP });
     ref.onDisconnect().remove();
@@ -2085,10 +2231,12 @@ function listenPlayerRoom() {
 
 function renderPlayer() {
   const content = document.getElementById('player-content');
+  if (playerRoomState) applyGameTheme(playerRoomState.theme);
   const phase = playerRoomState.phase;
   if (playerRoomState.broadcastLeaderboard && (phase === 'lobby' || phase === 'reveal')) { renderPlayerLeaderboardBroadcast(content); return; }
   if (phase === 'lobby') renderPlayerLobby(content);
   else if (phase === 'video') renderPlayerVideo(content);
+  else if (phase === 'slide') renderPlayerSlide(content);
   else if (phase === 'question') renderPlayerQuestion(content);
   else if (phase === 'reveal') renderPlayerReveal(content);
   else if (phase === 'finished') renderPlayerFinal(content);
@@ -2133,7 +2281,7 @@ function renderPlayerVideo(content) {
   const q = playerRoomState.currentQuestion;
   const idx = playerRoomState.questionIndex;
   content.innerHTML = `
-    <div class="progress-label center-text">שאלה ${idx + 1} מתוך ${playerRoomState.totalQuestions}</div>
+    <div class="progress-label center-text">שאלה ${q.qNum || idx + 1} מתוך ${playerRoomState.totalQuestions}</div>
     <div class="muted center-text" style="margin-bottom:10px;">צפו בסרטון... השאלה תתחיל כשהמנחה יסמן שסיימתם</div>
     ${questionMediaHtml(q)}
   `;
@@ -2144,20 +2292,12 @@ function renderPlayerQuestion(content) {
   const q = playerRoomState.currentQuestion;
   const paused = !!playerRoomState.paused;
   const duration = q.duration || playerRoomState.duration;
-  if (playerAnsweredIndex === idx && playerAnsweredStartAt === q.startAt) {
-    content.innerHTML = `
-      <div class="progress-label center-text">שאלה ${idx + 1} מתוך ${playerRoomState.totalQuestions}</div>
-      <div class="card center-text">
-        <div style="font-size:1.4em;">✅ התשובה שלך נשלחה!</div>
-        <div class="muted">מחכים לשאר השחקנים...</div>
-      </div>
-    `;
-    return;
-  }
+  const answered = (playerAnsweredIndex === idx && playerAnsweredStartAt === q.startAt);
   content.innerHTML = `
-    <div class="progress-label center-text">שאלה ${idx + 1} מתוך ${playerRoomState.totalQuestions}</div>
+    <div class="progress-label center-text">שאלה ${q.qNum || idx + 1} מתוך ${playerRoomState.totalQuestions}</div>
     ${q.sample ? '<div class="feedback-banner" style="font-size:.9em; background:#fff3cd; color:#7a5b00;">🎯 שאלת דוגמה - לא נספרת בניקוד</div>' : ''}
     ${paused ? '<div class="feedback-banner" style="font-size:1em;">⏸️ המנחה השהה את המשחק</div>' : ''}
+    ${answered ? '<div class="answered-note">✅ התשובה שלך נקלטה - מחכים שהזמן ייגמר</div>' : ''}
     <div class="timer-bar-outer"><div class="timer-bar-inner" id="player-timer-bar"></div></div>
     <div class="timer-num" id="player-timer-text"></div>
     ${questionMediaHtml(q)}
@@ -2169,8 +2309,9 @@ function renderPlayerQuestion(content) {
     const b = document.createElement('button');
     b.className = 'choice-btn choice-' + i;
     b.textContent = c;
-    b.disabled = paused;
-    if (paused) b.style.opacity = '.5';
+    b.disabled = paused || answered;
+    if (answered) b.classList.add(i === playerAnsweredChoice ? 'picked' : 'faded');
+    else if (paused) b.style.opacity = '.5';
     b.onclick = () => submitAnswer(idx, i);
     grid.appendChild(b);
   });
@@ -2205,6 +2346,7 @@ function startPlayerCountdown(startAt, duration) {
 function submitAnswer(idx, choiceIndex) {
   playerAnsweredIndex = idx;
   playerAnsweredStartAt = playerRoomState.currentQuestion.startAt;
+  playerAnsweredChoice = choiceIndex;
   db.ref('rooms/' + playerRoomCode + '/answers/' + idx + '/' + playerId).set({
     choiceIndex,
     at: firebase.database.ServerValue.TIMESTAMP
@@ -2222,6 +2364,8 @@ function renderPlayerReveal(content) {
     const sorted = Object.entries(players).sort((x, y) => (y[1].score || 0) - (x[1].score || 0));
     const myRank = sorted.findIndex(([pid]) => pid === playerId) + 1;
     const isSample = !!(playerRoomState.currentQuestion && playerRoomState.currentQuestion.sample);
+    const cq = playerRoomState.currentQuestion || {};
+    const correctText = (cq.choices && cq.choices[cq.correctIndex]) || "";
     let banner = '⏳';
     if (a) {
       if (isSample) {
@@ -2236,6 +2380,7 @@ function renderPlayerReveal(content) {
     }
     content.innerHTML = `
       <div class="feedback-banner">${banner}</div>
+      ${correctText ? `<div class="card center-text"><div class="muted" style="font-size:.8em;">התשובה הנכונה</div><div style="font-size:1.15em; font-weight:800; color:var(--good);">${correctText}</div></div>` : ""}
       <div class="card center-text">
         <div style="font-size:1.3em; font-weight:700;">הניקוד שלך: ${myScore}</div>
         <div class="muted">מקום ${myRank || '-'} מתוך ${sorted.length}</div>
@@ -2769,6 +2914,7 @@ const ADMIN_NAV = [
     { id: 'manual', label: 'בחירת שאלות',   sub: 'קביעה ידנית של השאלה בכל מקום בסיבוב' },
     { id: 'time',   label: 'זמן לשאלה',     sub: 'מגבלת הזמן שניתנת לכל שאלה' },
     { id: 'sound',  label: 'צלילים ומוזיקה', sub: 'הפעלה וכיבוי של אפקטי קול ומוזיקת רקע' },
+    { id: 'theme',  label: 'עיצוב המשחק',   sub: 'עיצוב רגיל או חגיגי - עובר לכל השחקנים במשחק' },
   ] },
   { group: 'דוחות ואבטחה', items: [
     { id: 'scores', label: 'ניקודים',          sub: 'היסטוריית משחקים ופירוט לכל שאלה' },
@@ -2828,6 +2974,29 @@ function setAdminTab(tab) { adminTab = tab; renderAdminPanel(); }
 
 function renderAdminTab() {
   const el = document.getElementById('admin-tab-content');
+  if (adminTab === 'theme') {
+    const cur = getGameTheme();
+    const previews = {
+      classic: 'linear-gradient(145deg,#EEF1F6 0%,#FFFFFF 55%,#FFB627 100%)',
+      silver: 'linear-gradient(145deg,#0C1226 0%,#17213E 50%,#E6C06A 100%)'
+    };
+    el.innerHTML =
+      '<div class="card">' +
+        '<p style="color:#555;">העיצוב שתבחר כאן הוא מה שכל השחקנים יראו במשחק שתפתח - לא רק אתה. העיצוב הרגיל תמיד נשמר, אפשר לחזור אליו בלחיצה.</p>' +
+        Object.keys(GAME_THEMES).map(key => {
+          const t = GAME_THEMES[key];
+          const on = key === cur;
+          return '<div class="adm-theme-card' + (on ? ' on' : '') + '">' +
+            '<div class="adm-theme-prev" style="background:' + previews[key] + ';">' + t.mark + '</div>' +
+            '<div class="adm-theme-info"><b>' + t.label + '</b><span>' + t.sub + '</span>' +
+            '<span class="adm-theme-name">' + t.title1 + ' ' + t.title2 + '</span></div>' +
+            (on ? '<span class="adm-theme-on">✓ נבחר</span>'
+                : '<button class="small-btn" onclick="setGameTheme(\'' + key + '\')">בחר</button>') +
+            '</div>';
+        }).join('') +
+      '</div>';
+    return;
+  }
   if (adminTab === 'add') {
     el.innerHTML = renderAddQuestionFormHtml();
     renderNewQuestionCountOptions();
@@ -3409,7 +3578,7 @@ let planDraft = {
   name: '',
   count: 10,
   source: 'all',
-  questions: [],
+  items: [],
   timeMode: 'same',
   duration: 20,
   names: '',
@@ -3426,9 +3595,16 @@ function planEscAttr(s) {
 function loadPlanDraft() {
   try {
     const d = JSON.parse(localStorage.getItem(PLAN_DRAFT_KEY));
-    if (d) planDraft = Object.assign(planDraft, d);
+    if (d) {
+      // טיוטה מהגרסה הקודמת, שבה היו רק שאלות בלי שקופיות
+      if (!d.items && Array.isArray(d.questions)) {
+        d.items = d.questions.map(q => ({ kind: 'q', text: q.text || null, sample: !!q.sample, duration: q.duration || null }));
+        delete d.questions;
+      }
+      planDraft = Object.assign(planDraft, d);
+    }
   } catch (e) {}
-  planFixSlots();
+  planFixItems();
 }
 function savePlanDraft() {
   try { localStorage.setItem(PLAN_DRAFT_KEY, JSON.stringify(planDraft)); } catch (e) {}
@@ -3442,16 +3618,23 @@ function planPick(key, val) {
   renderPlanWizard();
 }
 
-// שומר על רשימת השאלות באורך שמתאים למספר השאלות שנבחר
-function planFixSlots() {
-  const arr = Array.isArray(planDraft.questions) ? planDraft.questions : [];
-  const fixed = [];
-  for (let i = 0; i < planDraft.count; i++) {
-    const s = arr[i];
-    fixed.push(s ? { text: s.text || null, sample: !!s.sample, duration: s.duration || null }
-                 : { text: null, sample: false, duration: null });
+// מוודא שמספר השאלות ברשימה מתאים למה שנבחר בשלב 2 (השקופיות לא נספרות)
+function planFixItems() {
+  if (!Array.isArray(planDraft.items)) planDraft.items = [];
+  const items = planDraft.items.filter(it => it && (it.kind === 'q' || it.kind === 'slide'));
+  let qCount = items.filter(it => it.kind === 'q').length;
+  while (qCount < planDraft.count) { items.push({ kind: 'q', text: null, sample: false, duration: null }); qCount++; }
+  while (qCount > planDraft.count) {
+    for (let i = items.length - 1; i >= 0; i--) {
+      if (items[i].kind === 'q') { items.splice(i, 1); break; }
+    }
+    qCount--;
   }
-  planDraft.questions = fixed;
+  planDraft.items = items;
+}
+
+function planQuestionItems() {
+  return planDraft.items.filter(it => it.kind === 'q');
 }
 
 // בנק השאלות של נושא מסוים, בלי לשנות את ההגדרה הקבועה של המשחק
@@ -3475,9 +3658,9 @@ function planSourceLabel(val) {
 }
 
 const PLAN_STEPS = [
-  { title: 'איך קוראים למשחק?', sub: 'שם קצר שיעזור לך לזכור איזה משחק זה. לדוגמה: "מסיבת כיתה".' },
+  { title: 'איך קוראים למשחק?', sub: 'שם קצר שיעזור לך לזכור איזה משחק זה. לדוגמה: "חתונת הכסף".' },
   { title: 'כמה שאלות יהיו במשחק?', sub: 'אפשר לבחור מספר מוכן או להקליד מספר משלך.' },
-  { title: 'בחירת השאלות', sub: 'תבחר שאלה אחרי שאלה. מה שלא תבחר - ייבחר אקראית בשבילך.' },
+  { title: 'השאלות והשקופיות', sub: 'תבחר שאלה אחרי שאלה, ובין השאלות אפשר להכניס תמונה גדולה או סרטון.' },
   { title: 'כמה זמן לכל שאלה?', sub: 'אפשר זמן אחיד לכל המשחק, או זמן נפרד לכל שאלה.' },
   { title: 'מי משחק?', sub: 'כתוב כל שם בשורה נפרדת. מי שייכנס עם הקישור יבחר את השם שלו מהרשימה.' },
   { title: 'הכל מוכן!', sub: 'תבדוק שהכל נכון, ואז ניצור את המשחק עם קוד וקישור להזמנה.' }
@@ -3504,43 +3687,137 @@ function planStepperHtml() {
   return h + '</div>';
 }
 
-/* ---------- שלב 3: בחירת שאלה אחרי שאלה ---------- */
+/* ---------- שלב 3: שאלות ושקופיות ---------- */
 
-function planSlotsHtml() {
+function planInsertHtml(pos) {
+  return '<button class="plan-insert" onclick="planInsertSlide(' + pos + ')">➕ תמונה או סרטון כאן</button>';
+}
+
+function planItemsHtml() {
   let h = '<div class="plan-opts" style="margin-bottom:14px;">' +
     '<button class="plan-opt" onclick="planFillRandom()">🎲 מלא את מה שחסר באקראי</button>' +
-    '<button class="plan-opt" onclick="planClearAll()">🗑️ נקה הכל</button>' +
+    '<button class="plan-opt" onclick="planClearAll()">🗑️ נקה את השאלות</button>' +
     '</div>';
   h += '<div class="plan-slots">';
-  planDraft.questions.forEach((slot, i) => {
-    const open = planOpenSlot === i;
-    h += '<div class="plan-slot' + (slot.text ? ' filled' : '') + (open ? ' open' : '') + '">';
-    h += '<button class="plan-slot-head" onclick="planToggleSlot(' + i + ')">' +
-      '<span class="plan-slot-num">' + (i + 1) + '</span>' +
-      '<span class="plan-slot-txt">' + (slot.text ? (slot.sample ? '🎯 ' : '') + planEscText(slot.text) : 'עוד לא נבחרה שאלה - לחץ לבחור') + '</span>' +
-      '<span class="plan-slot-arrow">' + (open ? '▲' : '▼') + '</span>' +
-      '</button>';
-    if (slot.text) {
-      h += '<label class="plan-check"><input type="checkbox"' + (slot.sample ? ' checked' : '') +
-        ' onchange="planToggleSample(' + i + ', this.checked)"> שאלת דוגמה 🎯 (התשובה לא נחשבת לניקוד)</label>';
-    }
-    if (open) {
-      h += '<div class="plan-picker">' +
-        '<div class="plan-opts plan-picker-filters">';
-      planSourceOptions().forEach(([val, label]) => {
-        h += '<button class="plan-opt' + (planDraft.source === val ? ' selected' : '') + '" onclick="planSetPickerSource(\'' + val + '\')">' + label + '</button>';
-      });
-      h += '</div>' +
-        '<input type="text" class="plan-search" placeholder="חיפוש שאלה..." value="' + planEscAttr(planPickerSearch) + '" oninput="planPickerSearch = this.value; planRenderPickerList(' + i + ');">' +
-        '<div class="plan-picker-list" id="plan-picker-list">' + planPickerListHtml(i) + '</div>' +
-        '</div>';
-    }
-    h += '</div>';
+  let qNum = 0;
+  planDraft.items.forEach((item, i) => {
+    h += planInsertHtml(i);
+    h += (item.kind === 'q') ? planQuestionItemHtml(item, i, ++qNum) : planSlideItemHtml(item, i);
   });
+  h += planInsertHtml(planDraft.items.length);
   h += '</div>';
-  const chosen = planDraft.questions.filter(s => s.text).length;
-  h += '<p class="plan-hint">נבחרו ' + chosen + ' מתוך ' + planDraft.count + ' שאלות.</p>';
+  const chosen = planQuestionItems().filter(s => s.text).length;
+  const slides = planDraft.items.filter(it => it.kind === 'slide').length;
+  h += '<p class="plan-hint">נבחרו ' + chosen + ' מתוך ' + planDraft.count + ' שאלות' + (slides ? ', ועוד ' + slides + ' שקופיות' : '') + '.</p>';
   return h;
+}
+
+function planQuestionItemHtml(slot, i, qNum) {
+  const open = planOpenSlot === i;
+  let h = '<div class="plan-slot' + (slot.text ? ' filled' : '') + (open ? ' open' : '') + '">';
+  h += '<button class="plan-slot-head" onclick="planToggleSlot(' + i + ')">' +
+    '<span class="plan-slot-num">' + qNum + '</span>' +
+    '<span class="plan-slot-txt">' + (slot.text ? (slot.sample ? '🎯 ' : '') + planEscText(slot.text) : 'עוד לא נבחרה שאלה - לחץ לבחור') + '</span>' +
+    '<span class="plan-slot-arrow">' + (open ? '▲' : '▼') + '</span>' +
+    '</button>';
+  if (slot.text) {
+    h += '<label class="plan-check"><input type="checkbox"' + (slot.sample ? ' checked' : '') +
+      ' onchange="planToggleSample(' + i + ', this.checked)"> שאלת דוגמה 🎯 (התשובה לא נחשבת לניקוד)</label>';
+  }
+  if (open) {
+    h += '<div class="plan-picker"><div class="plan-opts plan-picker-filters">';
+    planSourceOptions().forEach(([val, label]) => {
+      h += '<button class="plan-opt' + (planDraft.source === val ? ' selected' : '') + '" onclick="planSetPickerSource(\'' + val + '\')">' + label + '</button>';
+    });
+    h += '</div>' +
+      '<input type="text" class="plan-search" placeholder="חיפוש שאלה..." value="' + planEscAttr(planPickerSearch) + '" oninput="planPickerSearch = this.value; planRenderPickerList(' + i + ');">' +
+      '<div class="plan-picker-list" id="plan-picker-list">' + planPickerListHtml(i) + '</div></div>';
+  }
+  return h + '</div>';
+}
+
+function planSlideItemHtml(item, i) {
+  const open = planOpenSlot === i;
+  const what = item.image ? '🖼️ תמונה' : (item.video ? '🎬 סרטון' : '✏️ שקופית ריקה - לחץ לערוך');
+  let h = '<div class="plan-slot slide' + (open ? ' open' : '') + '">';
+  h += '<button class="plan-slot-head" onclick="planToggleSlot(' + i + ')">' +
+    '<span class="plan-slot-num">🖼️</span>' +
+    '<span class="plan-slot-txt">' + (item.title ? planEscText(item.title) + ' · ' : '') + what + '</span>' +
+    '<span class="plan-slot-arrow">' + (open ? '▲' : '▼') + '</span>' +
+    '</button>';
+  if (open) {
+    h += '<div class="plan-picker">' +
+      '<label class="plan-label">כותרת (רשות)</label>' +
+      '<input type="text" maxlength="60" value="' + planEscAttr(item.title || '') + '" placeholder="לדוגמה: החתונה, 2001" oninput="planSlideSet(' + i + ', \'title\', this.value)">' +
+      '<label class="plan-label">טקסט קטן מתחת (רשות)</label>' +
+      '<input type="text" maxlength="120" value="' + planEscAttr(item.text || '') + '" placeholder="משפט קצר" oninput="planSlideSet(' + i + ', \'text\', this.value)">' +
+      '<label class="plan-label">תמונה</label>' +
+      (item.image
+        ? '<div class="plan-slide-prev"><img src="' + item.image + '"><button class="plan-btn" onclick="planSlideSet(' + i + ', \'image\', null); renderPlanWizard();">🗑️ הסר תמונה</button></div>'
+        : '<input type="file" accept="image/*" id="plan-slide-file-' + i + '" style="display:none" onchange="planSlideImage(' + i + ', this.files[0])">' +
+          '<button class="plan-btn" onclick="document.getElementById(\'plan-slide-file-' + i + '\').click()">📁 בחר תמונה מהמכשיר</button>') +
+      '<label class="plan-label">סרטון (קישור יוטיוב)</label>' +
+      '<input type="text" dir="ltr" value="' + planEscAttr(item.video || '') + '" placeholder="https://youtube.com/..." oninput="planSlideSet(' + i + ', \'video\', this.value)">' +
+      '<div class="plan-nav" style="margin-top:14px;">' +
+        '<button class="plan-btn" onclick="planMoveItem(' + i + ', -1)">⬆️ למעלה</button>' +
+        '<button class="plan-btn" onclick="planMoveItem(' + i + ', 1)">⬇️ למטה</button>' +
+        '<div class="plan-spacer"></div>' +
+        '<button class="plan-btn" onclick="planRemoveSlide(' + i + ')">🗑️ מחק שקופית</button>' +
+      '</div></div>';
+  }
+  return h + '</div>';
+}
+
+function planInsertSlide(pos) {
+  planDraft.items.splice(pos, 0, { kind: 'slide', title: '', text: '', image: null, video: '' });
+  planOpenSlot = pos;
+  savePlanDraft();
+  renderPlanWizard();
+}
+
+function planRemoveSlide(i) {
+  planDraft.items.splice(i, 1);
+  planOpenSlot = -1;
+  savePlanDraft();
+  renderPlanWizard();
+}
+
+function planMoveItem(i, dir) {
+  const j = i + dir;
+  if (j < 0 || j >= planDraft.items.length) return;
+  const tmp = planDraft.items[i];
+  planDraft.items[i] = planDraft.items[j];
+  planDraft.items[j] = tmp;
+  planOpenSlot = j;
+  savePlanDraft();
+  renderPlanWizard();
+}
+
+function planSlideSet(i, key, val) {
+  const item = planDraft.items[i];
+  if (!item || item.kind !== 'slide') return;
+  item[key] = val;
+  savePlanDraft();
+}
+
+function planSlideImage(i, file) {
+  if (!file || !file.type.startsWith('image/')) return;
+  const reader = new FileReader();
+  reader.onload = (e) => {
+    const img = new Image();
+    img.onload = () => {
+      const maxW = 900;
+      const scale = Math.min(1, maxW / img.width);
+      const canvas = document.createElement('canvas');
+      canvas.width = Math.round(img.width * scale);
+      canvas.height = Math.round(img.height * scale);
+      canvas.getContext('2d').drawImage(img, 0, 0, canvas.width, canvas.height);
+      planSlideSet(i, 'image', canvas.toDataURL('image/jpeg', 0.72));
+      renderPlanWizard();
+    };
+    img.src = e.target.result;
+  };
+  reader.readAsDataURL(file);
 }
 
 function planPickerListHtml(slotIndex) {
@@ -3548,10 +3825,10 @@ function planPickerListHtml(slotIndex) {
   const term = planPickerSearch.trim();
   const filtered = term ? bank.filter(q => q.q.indexOf(term) !== -1) : bank;
   if (!filtered.length) return '<div class="plan-picker-empty">לא נמצאו שאלות</div>';
-  const used = planDraft.questions.map((s, i) => i === slotIndex ? null : s.text).filter(Boolean);
+  const used = planDraft.items.map((s, i) => (i === slotIndex || s.kind !== 'q') ? null : s.text).filter(Boolean);
   return filtered.slice(0, 300).map(q => {
     const isUsed = used.indexOf(q.q) !== -1;
-    const isCurrent = planDraft.questions[slotIndex].text === q.q;
+    const isCurrent = planDraft.items[slotIndex].text === q.q;
     return '<div class="plan-picker-item' + (isCurrent ? ' current' : '') + (isUsed ? ' used' : '') + '" onclick="planChoose(' + slotIndex + ', ' + JSON.stringify(q.q).replace(/"/g, '&quot;') + ')">' +
       (isCurrent ? '✅ ' : (isUsed ? '↩️ ' : '')) + planEscText(q.q) + '</div>';
   }).join('');
@@ -3575,7 +3852,7 @@ function planToggleSlot(i) {
 }
 
 function planChoose(i, text) {
-  planDraft.questions[i].text = text;
+  planDraft.items[i].text = text;
   planOpenSlot = -1;
   planPickerSearch = '';
   savePlanDraft();
@@ -3583,24 +3860,26 @@ function planChoose(i, text) {
 }
 
 function planToggleSample(i, val) {
-  planDraft.questions[i].sample = val;
+  planDraft.items[i].sample = val;
   savePlanDraft();
 }
 
 function planFillRandom() {
   const bank = planBankFor(planDraft.source);
-  const used = planDraft.questions.map(s => s.text).filter(Boolean);
+  const used = planQuestionItems().map(s => s.text).filter(Boolean);
   const pool = shuffleArray(bank.filter(q => used.indexOf(q.q) === -1));
   let p = 0;
-  planDraft.questions.forEach(slot => {
-    if (!slot.text && pool[p]) { slot.text = pool[p].q; p++; }
+  planDraft.items.forEach(slot => {
+    if (slot.kind === 'q' && !slot.text && pool[p]) { slot.text = pool[p].q; p++; }
   });
   savePlanDraft();
   renderPlanWizard();
 }
 
 function planClearAll() {
-  planDraft.questions.forEach(slot => { slot.text = null; slot.sample = false; });
+  planDraft.items.forEach(slot => {
+    if (slot.kind === 'q') { slot.text = null; slot.sample = false; }
+  });
   savePlanDraft();
   renderPlanWizard();
 }
@@ -3626,9 +3905,12 @@ function planTimeHtml() {
   }
   h += '<p class="plan-hint" style="margin-bottom:10px;">אם תשאיר שדה ריק - השאלה הזו תקבל ' + planDraft.duration + ' שניות.</p>';
   h += '<div class="plan-slots">';
-  planDraft.questions.forEach((slot, i) => {
+  let qNum = 0;
+  planDraft.items.forEach((slot, i) => {
+    if (slot.kind !== 'q') return;
+    qNum++;
     h += '<div class="plan-time-row">' +
-      '<span class="plan-slot-num">' + (i + 1) + '</span>' +
+      '<span class="plan-slot-num">' + qNum + '</span>' +
       '<span class="plan-time-txt">' + (slot.text ? planEscText(slot.text) : 'שאלה אקראית') + '</span>' +
       '<input type="text" class="plan-time-input" inputmode="numeric" maxlength="3" value="' + (slot.duration || '') + '" placeholder="' + planDraft.duration + '" oninput="planSetSlotDuration(' + i + ', this.value)">' +
       '<span class="plan-time-unit">שניות</span>' +
@@ -3640,7 +3922,7 @@ function planTimeHtml() {
 
 function planSetSlotDuration(i, val) {
   const n = parseInt(val, 10);
-  planDraft.questions[i].duration = (n && n > 0 && n <= 600) ? n : null;
+  planDraft.items[i].duration = (n && n > 0 && n <= 600) ? n : null;
   savePlanDraft();
 }
 
@@ -3658,14 +3940,14 @@ function planApplyCustomCount() {
   if (!val || val <= 0 || val > 100) { alert('תכניס מספר בין 1 ל-100'); return; }
   if (val > bankSize) { alert('בנושא שבחרת יש רק ' + bankSize + ' שאלות'); return; }
   planDraft.count = val;
-  planFixSlots();
+  planFixItems();
   savePlanDraft();
   renderPlanWizard();
 }
 
 function planSetCount(n) {
   planDraft.count = n;
-  planFixSlots();
+  planFixItems();
   savePlanDraft();
   renderPlanWizard();
 }
@@ -3676,7 +3958,7 @@ function planStepBodyHtml() {
   const d = planDraft;
   if (planStep === 0) {
     return '<label class="plan-label">שם המשחק</label>' +
-      '<input type="text" id="plan-name" maxlength="30" placeholder="לדוגמה: מסיבת כיתה" value="' + planEscAttr(d.name) + '" oninput="planSet(\'name\', this.value)">' +
+      '<input type="text" id="plan-name" maxlength="30" placeholder="לדוגמה: חתונת הכסף" value="' + planEscAttr(d.name) + '" oninput="planSet(\'name\', this.value)">' +
       '<p class="plan-hint">אם תשאיר ריק - נקרא לזה פשוט "קרב מוחות".</p>';
   }
   if (planStep === 1) {
@@ -3691,7 +3973,7 @@ function planStepBodyHtml() {
       '<p class="plan-hint">כרגע: <b>' + d.count + '</b> שאלות במשחק.</p>';
     return h;
   }
-  if (planStep === 2) return planSlotsHtml();
+  if (planStep === 2) return planItemsHtml();
   if (planStep === 3) return planTimeHtml();
   if (planStep === 4) {
     const count = d.names.split('\n').map(s => s.trim()).filter(Boolean).length;
@@ -3704,13 +3986,16 @@ function planStepBodyHtml() {
   }
   // סיכום
   const names = d.names.split('\n').map(s => s.trim()).filter(Boolean);
-  const chosen = d.questions.filter(s => s.text).length;
-  const samples = d.questions.filter(s => s.text && s.sample).length;
+  const qItems = planQuestionItems();
+  const chosen = qItems.filter(s => s.text).length;
+  const samples = qItems.filter(s => s.text && s.sample).length;
+  const slides = d.items.filter(it => it.kind === 'slide').length;
   let h = '<div class="plan-sum">';
   h += '<div class="plan-sum-row"><b>שם המשחק</b><span>' + planEscText(d.name || 'קרב מוחות') + '</span></div>';
   h += '<div class="plan-sum-row"><b>כמה שאלות</b><span>' + d.count + '</span></div>';
   h += '<div class="plan-sum-row"><b>שאלות שבחרת</b><span>' + chosen + ' (השאר אקראי מתוך ' + planSourceLabel(d.source) + ')</span></div>';
   if (samples) h += '<div class="plan-sum-row"><b>שאלות דוגמה</b><span>' + samples + '</span></div>';
+  h += '<div class="plan-sum-row"><b>תמונות וסרטונים</b><span>' + (slides ? slides + ' שקופיות' : 'אין') + '</span></div>';
   h += '<div class="plan-sum-row"><b>זמן</b><span>' + (d.timeMode === 'same' ? d.duration + ' שניות לכל שאלה' : 'זמן נפרד לכל שאלה') + '</span></div>';
   h += '<div class="plan-sum-row"><b>משתתפים</b><span>' + (names.length ? planEscText(names.join(', ')) : 'כל אחד יקליד שם בעצמו') + '</span></div>';
   h += '<div class="plan-sum-row"><b>שעת פתיחה</b><span>' + (d.time || 'לא נקבעה') + '</span></div>';
@@ -3724,7 +4009,7 @@ function planUpdateNamesCount(val) {
 }
 
 function renderPlanWizard() {
-  planFixSlots();
+  planFixItems();
   const content = document.getElementById('plan-content');
   const step = PLAN_STEPS[planStep];
   const last = planStep === PLAN_STEPS.length - 1;
@@ -3766,23 +4051,36 @@ function planNext() { planGoTo(planStep + 1); }
 function planCreateGame() {
   const bank = planBankFor(planDraft.source);
   const fullBank = planBankFor('all');
-  const used = planDraft.questions.map(s => s.text).filter(Boolean);
+  const used = planQuestionItems().map(s => s.text).filter(Boolean);
   const pool = shuffleArray(bank.filter(q => used.indexOf(q.q) === -1));
   let p = 0;
+  let qNum = 0;
   const built = [];
-  planDraft.questions.forEach(slot => {
+  planDraft.items.forEach(slot => {
+    if (slot.kind === 'slide') {
+      if (!slot.image && !slot.video && !slot.title && !slot.text) return;
+      built.push({
+        type: 'slide',
+        title: slot.title || '',
+        text: slot.text || '',
+        image: slot.image || null,
+        video: slot.video || null
+      });
+      return;
+    }
     let item = null;
     if (slot.text) item = fullBank.find(q => q.q === slot.text);
     if (!item) { item = pool[p]; p++; }
     if (!item) return;
     const inst = buildQuestionInstance(item);
     inst.sample = !!slot.sample;
+    inst.qNum = ++qNum;
     if (planDraft.timeMode === 'each' && slot.duration) inst.duration = slot.duration;
     built.push(inst);
   });
-  if (!built.length) { alert('אין מספיק שאלות בנושא שבחרת'); return; }
+  if (!built.filter(b => b.type !== 'slide').length) { alert('אין מספיק שאלות בנושא שבחרת'); return; }
 
-  hostSettings.count = built.length;
+  hostSettings.count = qNum;
   hostSettings.duration = planDraft.duration;
   pendingRoomExtras = {
     questions: built,
@@ -3792,6 +4090,52 @@ function planCreateGame() {
   };
   createRoom();
 }
+
+/* ===================== עיצוב המשחק (ערכות נושא) ===================== */
+const GAME_THEME_KEY = 'trivia_game_theme';
+const GAME_THEMES = {
+  classic: {
+    label: 'רגיל',
+    sub: 'העיצוב המקורי של קרב מוחות',
+    mark: '🧠',
+    title1: 'קרב',
+    title2: 'מוחות',
+    tagline: 'מי יהיה אלוף הידע היום?'
+  },
+  silver: {
+    label: 'חגיגי - חתונת כסף',
+    sub: 'כסף וזהב על רקע כהה, לאירוע משפחתי',
+    mark: '💍',
+    title1: 'חתונת',
+    title2: 'הכסף',
+    tagline: '25 שנה לאבא ואמא 💍'
+  }
+};
+
+function getGameTheme() {
+  const v = localStorage.getItem(GAME_THEME_KEY);
+  return GAME_THEMES[v] ? v : 'classic';
+}
+function setGameTheme(v) {
+  if (!GAME_THEMES[v]) return;
+  localStorage.setItem(GAME_THEME_KEY, v);
+  applyGameTheme();
+  if (typeof renderAdminTab === 'function' && document.getElementById('admin-tab-content')) renderAdminTab();
+}
+// name ריק = העיצוב השמור במכשיר. בתוך חדר משתמשים בעיצוב שהמנחה בחר.
+function applyGameTheme(name) {
+  const key = GAME_THEMES[name] ? name : getGameTheme();
+  const t = GAME_THEMES[key];
+  document.body.setAttribute('data-game-theme', key);
+  const mark = document.getElementById('brand-mark');
+  if (mark) mark.textContent = t.mark;
+  const title = document.getElementById('brand-title');
+  if (title) title.innerHTML = t.title1 + ' <span class="spark">' + t.title2 + '</span>';
+  const tagline = document.getElementById('brand-tagline');
+  if (tagline) tagline.textContent = t.tagline;
+  document.title = t.title1 + ' ' + t.title2;
+}
+applyGameTheme();
 checkJoinLinkOnLoad();
 </script>
 </body>
