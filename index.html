@@ -2476,7 +2476,6 @@ function renderPlayerVideo(content) {
   const idx = playerRoomState.questionIndex;
   content.innerHTML = `
     <div class="progress-label center-text">שאלה ${q.qNum || idx + 1} מתוך ${playerRoomState.totalQuestions}</div>
-    <div class="muted center-text" style="margin-bottom:10px;">🎬 צפו בסרטון - השאלה מתחילה מיד אחריו</div>
     ${questionMediaHtml(q)}
   `;
 }
