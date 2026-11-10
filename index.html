@@ -1876,9 +1876,9 @@ function renderPlayerSlide(content) {
   const s = playerRoomState.currentSlide || {};
   content.innerHTML = `
     <div class="slide-wrap">${slideMediaHtml(s)}</div>
-    <div class="muted center-text">מסתכלים ביחד... המנחה ימשיך עוד רגע</div>
   `;
 }
+
 function renderHostVideo(content) {
   const q = hostRoomState.currentQuestion;
   const idx = hostRoomState.questionIndex;
@@ -2448,7 +2448,6 @@ function renderPlayerLeaderboardBroadcast(content) {
       <tr><th>מקום</th><th>שם</th><th>ניקוד</th></tr>
       ${sorted.map((p, i) => `<tr><td>${medals[i] || (i + 1)}</td><td>${p.name}</td><td>${p.score || 0}</td></tr>`).join('') || '<tr><td colspan="3" class="muted">אין עדיין תוצאות</td></tr>'}
     </table>
-    <div class="muted center-text" style="margin-top:10px;">המנחה מראה לכם את הטבלה...</div>
   `;
 }
 
@@ -2477,7 +2476,7 @@ function renderPlayerVideo(content) {
   const idx = playerRoomState.questionIndex;
   content.innerHTML = `
     <div class="progress-label center-text">שאלה ${q.qNum || idx + 1} מתוך ${playerRoomState.totalQuestions}</div>
-    <div class="muted center-text" style="margin-bottom:10px;">צפו בסרטון... השאלה תתחיל כשהמנחה יסמן שסיימתם</div>
+    <div class="muted center-text" style="margin-bottom:10px;">🎬 צפו בסרטון - השאלה מתחילה מיד אחריו</div>
     ${questionMediaHtml(q)}
   `;
 }
