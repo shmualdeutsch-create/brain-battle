@@ -2319,13 +2319,12 @@ function renderHostReveal(content) {
   const cq = hostRoomState.currentQuestion || {};
   const isCrowd = !!(q.crowd || cq.crowd);
   const crowdWinners = cq.crowdWinners || q.crowdWinners || [];
-  const crowdTally = cq.crowdTally || q.crowdTally || [];
   const isWinningChoice = (i) => isCrowd ? crowdWinners.indexOf(i) >= 0 : i === q.correctIndex;
 
   content.innerHTML = `
     <div class="progress-label center-text">${isCrowd ? '🗳️ מה שרוב השחקנים ענו:' : 'התשובה הנכונה:'}</div>
     <div class="choices-grid" style="grid-template-columns: repeat(${gridColsFor(q.choices.length)}, 1fr);">
-      ${q.choices.map((c, i) => `<div class="choice-btn choice-${i} ${isWinningChoice(i) ? 'correct-answer' : ''}" style="cursor:default;${isCrowd ? ' flex-direction:column; gap:4px;' : ''}">${c}${isCrowd ? `<div style="font-size:.72em; opacity:.85;">${crowdTally[i] || 0} ענו</div>` : ''}</div>`).join('')}
+      ${q.choices.map((c, i) => `<div class="choice-btn choice-${i} ${isWinningChoice(i) ? 'correct-answer' : ''}" style="cursor:default;${isCrowd && isWinningChoice(i) ? ' flex-direction:column; gap:4px; font-size:1.4em;' : ''}">${c}${isCrowd && isWinningChoice(i) ? '<div style="font-size:.5em; font-weight:700; opacity:.9;">הכי הרבה בחרו בזה</div>' : ''}</div>`).join('')}
     </div>
     ${isCrowd && !crowdWinners.length ? '<div class="muted center-text">אף אחד לא ענה בשאלה הזו</div>' : ''}
     <div class="card">
