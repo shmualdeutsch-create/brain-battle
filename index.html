@@ -2784,13 +2784,44 @@ function renderNewQuestionCountOptions() {
   });
 }
 
+let newQuestionChoiceStash = [];
+
+function readNewQuestionDraft() {
+  const val = id => { const el = document.getElementById(id); return el ? el.value : ''; };
+  const correctRadio = document.querySelector('input[name="new-q-correct"]:checked');
+  // מה שכתוב כרגע נכנס למחבוא, כדי שהקטנה והגדלה לא תמחק תשובות
+  for (let i = 0; i < newQuestionChoiceCount; i++) {
+    if (document.getElementById('new-q-choice-' + i)) newQuestionChoiceStash[i] = val('new-q-choice-' + i);
+  }
+  return {
+    text: val('new-q-text'),
+    image: val('new-q-image'),
+    video: val('new-q-video'),
+    choices: newQuestionChoiceStash.slice(),
+    correct: correctRadio ? parseInt(correctRadio.value, 10) : 0
+  };
+}
+
+function resetNewQuestionChoiceStash() {
+  newQuestionChoiceStash = [];
+}
+
+function restoreNewQuestionDraft(d) {
+  if (!d) return;
+  const set = (id, v) => { const el = document.getElementById(id); if (el && v) el.value = v; };
+  set('new-q-text', d.text);
+  set('new-q-image', d.image);
+  set('new-q-video', d.video);
+  (d.choices || []).forEach((v, i) => set('new-q-choice-' + i, v));
+  const radio = document.querySelector('input[name="new-q-correct"][value="' + d.correct + '"]');
+  if (radio) radio.checked = true;
+}
+
 function setNewQuestionChoiceCount(n) {
-  const textEl = document.getElementById('new-q-text');
-  const textVal = textEl ? textEl.value : '';
+  const draft = readNewQuestionDraft();
   newQuestionChoiceCount = n;
   renderAdminTab();
-  const newTextEl = document.getElementById('new-q-text');
-  if (newTextEl) newTextEl.value = textVal;
+  restoreNewQuestionDraft(draft);
 }
 
 function toggleNewQuestionCrowd(v) {
@@ -3006,6 +3037,7 @@ function addQuestionToOpenCategory() {
   }
   newQuestionImageData = null;
   newQuestionCrowd = false;
+  resetNewQuestionChoiceStash();
   renderAdminTab();
   const newMsg = document.getElementById('add-q-msg');
   if (newMsg) {
@@ -3622,6 +3654,7 @@ function addCustomQuestion() {
   }
   newQuestionImageData = null;
   newQuestionCrowd = false;
+  resetNewQuestionChoiceStash();
   renderAdminTab();
   const newMsg = document.getElementById('add-q-msg');
   if (newMsg) {
