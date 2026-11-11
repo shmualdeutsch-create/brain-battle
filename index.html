@@ -1187,6 +1187,11 @@ function gridColsFor(n) {
   return 4;
 }
 
+function crowdBannerHtml(q) {
+  if (!q || !q.crowd) return '';
+  return '<div class="feedback-banner" style="font-size:.9em; background:#e8e0ff; color:#4b2fa3;">🗳️ שאלת רוב - התשובה הנכונה היא מה שרוב השחקנים יענו</div>';
+}
+
 function shuffleArray(arr) {
   const a = arr.slice();
   for (let i = a.length - 1; i > 0; i--) {
@@ -1199,12 +1204,15 @@ function shuffleArray(arr) {
 function buildQuestionInstance(bankItem) {
   const order = shuffleArray([...Array(bankItem.choices.length).keys()]);
   const choices = order.map(i => bankItem.choices[i]);
-  const correctIndex = order.indexOf(bankItem.correct);
-  return { text: bankItem.q, choices, correctIndex, image: bankItem.image || null, video: bankItem.video || null };
+  // שאלת רוב: אין תשובה נכונה מראש - הנכונה היא זו שרוב השחקנים יבחרו
+  const crowd = !!bankItem.crowd;
+  const correctIndex = crowd ? -1 : order.indexOf(bankItem.correct);
+  return { text: bankItem.q, choices, correctIndex, crowd, image: bankItem.image || null, video: bankItem.video || null };
 }
 
-function pickRandomQuestions(n) {
-  const bank = getCombinedBank();
+function pickRandomQuestions(n, excludeCrowd) {
+  // במשחק לבד אין רוב, לכן שאלות רוב לא נכנסות
+  const bank = getCombinedBank().filter(q => !(excludeCrowd && q.crowd));
   const manualSel = getManualSelection();
   if (manualSel.length > 0) {
     const picked = manualSel
@@ -1339,7 +1347,7 @@ let soloPausedMsThisQuestion = 0;
 let soloPauseStartedAt = 0;
 
 function goSolo() {
-  soloQuestions = pickRandomQuestions(getSoloQuestionCount());
+  soloQuestions = pickRandomQuestions(getSoloQuestionCount(), true);
   soloIndex = 0;
   soloScore = 0;
   soloTimeLimit = getSoloTimeLimit();
@@ -1360,6 +1368,7 @@ function renderSoloQuestion() {
   content.innerHTML = `
     <div class="progress-label center-text">שאלה ${soloIndex + 1} מתוך ${soloQuestions.length} | ניקוד: ${soloScore}</div>
     ${q.sample ? '<div class="feedback-banner" style="font-size:.9em; background:#fff3cd; color:#7a5b00;">🎯 שאלת דוגמה - לא נספרת בניקוד</div>' : ''}
+    ${crowdBannerHtml(q)}
     <div id="solo-timer-wrap">${(!hasVideo && soloTimeLimit > 0) ? '<div class="timer-num" id="solo-timer-num"></div><div class="timer-bar-outer"><div class="timer-bar-inner" id="solo-timer-bar"></div></div>' : ''}</div>
     ${questionMediaHtml(q)}
     ${hasVideo ? '<div class="center-text" id="solo-video-gate" style="margin-bottom:14px;"><button class="big-btn green" onclick="startSoloAfterVideo()">▶️ סיימתי לצפות בסרטון - התחילו בשאלה!</button></div>' : ''}
@@ -1455,16 +1464,18 @@ function answerSolo(i) {
   const q = soloQuestions[soloIndex];
   const buttons = document.querySelectorAll('#solo-choices .choice-btn');
   buttons.forEach(b => b.disabled = true);
-  buttons[q.correctIndex].classList.add('correct-answer');
-  const correct = i === q.correctIndex;
+  const isCrowd = !!q.crowd;
+  if (!isCrowd && buttons[q.correctIndex]) buttons[q.correctIndex].classList.add('correct-answer');
+  const correct = isCrowd ? i >= 0 : i === q.correctIndex;
+  if (isCrowd && i >= 0) buttons[i].classList.add('picked');
   if (i >= 0 && !correct) buttons[i].classList.add('wrong-picked');
-  soloQuestionDetails.push({ text: q.text, correct, time: elapsedSec, sample: !!q.sample });
-  if (correct) { if (!q.sample) soloScore++; playCorrectSound(); } else { playWrongSound(); }
+  soloQuestionDetails.push({ text: q.text, correct, time: elapsedSec, sample: !!q.sample || isCrowd });
+  if (correct) { if (!q.sample && !isCrowd) soloScore++; playCorrectSound(); } else { playWrongSound(); }
 
   const content = document.getElementById('solo-content');
   const banner = document.createElement('div');
   banner.className = 'feedback-banner';
-  banner.textContent = i === -1 ? '⏰ נגמר הזמן!' : (correct ? '✅ נכון!' : '❌ לא נכון') + (q.sample ? ' (שאלת דוגמה)' : '');
+  banner.textContent = i === -1 ? '⏰ נגמר הזמן!' : (isCrowd ? '🗳️ שאלת רוב - צריך קבוצה כדי לדעת מה הרוב ענו (לא נספרת בניקוד)' : (correct ? '✅ נכון!' : '❌ לא נכון') + (q.sample ? ' (שאלת דוגמה)' : ''));
   content.appendChild(banner);
 
   setTimeout(() => { soloIndex++; renderSoloQuestion(); }, 1300);
@@ -1509,7 +1520,7 @@ function getHebrewDateString() {
 }
 
 function renderSoloResult() {
-  const scoredTotal = soloQuestions.filter(q => !q.sample).length || soloQuestions.length;
+  const scoredTotal = soloQuestions.filter(q => !q.sample && !q.crowd).length || soloQuestions.length;
   const avgTime = soloQuestionDetails.length ? (soloQuestionDetails.reduce((a, d) => a + d.time, 0) / soloQuestionDetails.length) : 0;
   addSoloHistory({ date: getHebrewDateString(), score: soloScore, total: scoredTotal, avgTime: avgTime.toFixed(1), details: soloQuestionDetails });
   const content = document.getElementById('solo-content');
@@ -1796,6 +1807,9 @@ function hostAdvanceToQuestion(idx) {
         text: q.text,
         choices: q.choices,
         correctIndex: q.correctIndex,
+        crowd: !!q.crowd,
+        crowdTally: null,
+        crowdWinners: null,
         image: q.image || null,
         video: q.video || null,
         sample: !!q.sample,
@@ -1817,6 +1831,9 @@ function hostAdvanceToQuestion(idx) {
       text: q.text,
       choices: q.choices,
       correctIndex: q.correctIndex,
+      crowd: !!q.crowd,
+      crowdTally: null,
+      crowdWinners: null,
       image: q.image || null,
       video: q.video || null,
       sample: !!q.sample,
@@ -1900,9 +1917,26 @@ function hostEndQuestion(idx) {
     const startAt = (hostRoomState.currentQuestion && hostRoomState.currentQuestion.startAt) || 0;
     const effectiveDuration = (hostRoomState.currentQuestion && hostRoomState.currentQuestion.duration) || hostSettings.duration;
     const updates = {};
+    let crowdWinners = null;
+    if (q.crowd) {
+      // סופרים כמה בחרו כל תשובה, והנכונה היא זו שקיבלה הכי הרבה (בתיקו - כל התשובות שהובילו)
+      const tally = q.choices.map(() => 0);
+      Object.keys(answers).forEach(pid => {
+        const ci = answers[pid].choiceIndex;
+        if (ci >= 0 && ci < tally.length) tally[ci]++;
+      });
+      const max = tally.reduce((m, c) => Math.max(m, c), 0);
+      crowdWinners = max > 0 ? tally.map((c, i) => (c === max ? i : -1)).filter(i => i >= 0) : [];
+      q.crowdTally = tally;
+      q.crowdWinners = crowdWinners;
+      q.correctIndex = crowdWinners.length ? crowdWinners[0] : -1;
+      updates['currentQuestion/crowdTally'] = tally;
+      updates['currentQuestion/crowdWinners'] = crowdWinners;
+      updates['currentQuestion/correctIndex'] = q.correctIndex;
+    }
     Object.keys(answers).forEach(pid => {
       const a = answers[pid];
-      const correct = a.choiceIndex === q.correctIndex;
+      const correct = q.crowd ? crowdWinners.indexOf(a.choiceIndex) >= 0 : a.choiceIndex === q.correctIndex;
       let points = 0;
       if (correct && !q.sample) {
         const elapsed = Math.max(0, (a.at || 0) - startAt);
@@ -2214,6 +2248,7 @@ function renderHostQuestion(content) {
   content.innerHTML = `
     <div class="progress-label center-text">שאלה ${q.qNum || idx + 1} מתוך ${hostRoomState.totalQuestions}</div>
     ${q.sample ? '<div class="feedback-banner" style="font-size:.9em; background:#fff3cd; color:#7a5b00;">🎯 שאלת דוגמה - לא נספרת בניקוד</div>' : ''}
+    ${crowdBannerHtml(q)}
     ${paused ? '<div class="feedback-banner" style="font-size:1em;">⏸️ המשחק מושהה</div>' : ''}
     <div class="timer-bar-outer"><div class="timer-bar-inner" id="host-timer-bar"></div></div>
     <div class="timer-num" id="host-timer-text"></div>
@@ -2281,11 +2316,18 @@ function renderHostReveal(content) {
     return { name: p.name, pts: a ? (a.pointsEarned || 0) : 0, correct: a ? a.correct : null, isWinner: pid === winnerPid };
   }).sort((x, y) => y.pts - x.pts);
 
+  const cq = hostRoomState.currentQuestion || {};
+  const isCrowd = !!(q.crowd || cq.crowd);
+  const crowdWinners = cq.crowdWinners || q.crowdWinners || [];
+  const crowdTally = cq.crowdTally || q.crowdTally || [];
+  const isWinningChoice = (i) => isCrowd ? crowdWinners.indexOf(i) >= 0 : i === q.correctIndex;
+
   content.innerHTML = `
-    <div class="progress-label center-text">התשובה הנכונה:</div>
+    <div class="progress-label center-text">${isCrowd ? '🗳️ מה שרוב השחקנים ענו:' : 'התשובה הנכונה:'}</div>
     <div class="choices-grid" style="grid-template-columns: repeat(${gridColsFor(q.choices.length)}, 1fr);">
-      ${q.choices.map((c, i) => `<div class="choice-btn choice-${i} ${i === q.correctIndex ? 'correct-answer' : ''}" style="cursor:default;">${c}</div>`).join('')}
+      ${q.choices.map((c, i) => `<div class="choice-btn choice-${i} ${isWinningChoice(i) ? 'correct-answer' : ''}" style="cursor:default;${isCrowd ? ' flex-direction:column; gap:4px;' : ''}">${c}${isCrowd ? `<div style="font-size:.72em; opacity:.85;">${crowdTally[i] || 0} ענו</div>` : ''}</div>`).join('')}
     </div>
+    ${isCrowd && !crowdWinners.length ? '<div class="muted center-text">אף אחד לא ענה בשאלה הזו</div>' : ''}
     <div class="card">
       <div style="font-weight:700; margin-bottom:8px;">📊 תוצאות השאלה הזו:</div>
       <table class="leaderboard">
@@ -2489,6 +2531,7 @@ function renderPlayerQuestion(content) {
   content.innerHTML = `
     <div class="progress-label center-text">שאלה ${q.qNum || idx + 1} מתוך ${playerRoomState.totalQuestions}</div>
     ${q.sample ? '<div class="feedback-banner" style="font-size:.9em; background:#fff3cd; color:#7a5b00;">🎯 שאלת דוגמה - לא נספרת בניקוד</div>' : ''}
+    ${crowdBannerHtml(q)}
     ${paused ? '<div class="feedback-banner" style="font-size:1em;">⏸️ המנחה השהה את המשחק</div>' : ''}
     ${answered ? '<div class="answered-note">✅ התשובה שלך נקלטה - מחכים שהזמן ייגמר</div>' : ''}
     <div class="timer-bar-outer"><div class="timer-bar-inner" id="player-timer-bar"></div></div>
@@ -2558,11 +2601,14 @@ function renderPlayerReveal(content) {
     const myRank = sorted.findIndex(([pid]) => pid === playerId) + 1;
     const isSample = !!(playerRoomState.currentQuestion && playerRoomState.currentQuestion.sample);
     const cq = playerRoomState.currentQuestion || {};
+    const isCrowd = !!cq.crowd;
     const correctText = (cq.choices && cq.choices[cq.correctIndex]) || "";
     let banner = '⏳';
     if (a) {
       if (isSample) {
-        banner = (a.correct ? '✅ נכון!' : '❌ לא נכון') + ' (שאלת דוגמה - לא נספר בניקוד)';
+        banner = (a.correct ? (isCrowd ? '✅ ענית כמו הרוב!' : '✅ נכון!') : (isCrowd ? '❌ לא ענית כמו הרוב' : '❌ לא נכון')) + ' (שאלת דוגמה - לא נספר בניקוד)';
+      } else if (isCrowd) {
+        banner = a.correct ? `✅ ענית כמו הרוב! +${a.pointsEarned} נקודות` : '❌ לא ענית כמו הרוב';
       } else {
         banner = a.correct ? `✅ נכון! +${a.pointsEarned} נקודות` : '❌ לא נכון הפעם';
       }
@@ -2573,7 +2619,7 @@ function renderPlayerReveal(content) {
     }
     content.innerHTML = `
       <div class="feedback-banner">${banner}</div>
-      ${correctText ? `<div class="card center-text"><div class="muted" style="font-size:.8em;">התשובה הנכונה</div><div style="font-size:1.15em; font-weight:800; color:var(--good);">${correctText}</div></div>` : ""}
+      ${correctText ? `<div class="card center-text"><div class="muted" style="font-size:.8em;">${isCrowd ? '🗳️ התשובה של הרוב' : 'התשובה הנכונה'}</div><div style="font-size:1.15em; font-weight:800; color:var(--good);">${correctText}</div></div>` : ""}
       <div class="card center-text">
         <div style="font-size:1.3em; font-weight:700;">הניקוד שלך: ${myScore}</div>
         <div class="muted">מקום ${myRank || '-'} מתוך ${sorted.length}</div>
@@ -2639,6 +2685,7 @@ function leavePlayerRoom() {
 
 /* ===================== ניהול - הוספת שאלות וצפייה בניקודים ===================== */
 let newQuestionChoiceCount = 4;
+let newQuestionCrowd = false;
 let newQuestionImageData = null;
 
 function renderQuestionImagePickerHtml() {
@@ -2704,10 +2751,17 @@ function renderAddQuestionFormHtml(saveFn) {
         <input type="text" id="new-q-count-custom" inputmode="numeric" maxlength="2" placeholder="מספר אחר" style="width:110px; text-align:center;">
         <button class="small-btn" onclick="applyCustomChoiceCount()">✓ עדכן</button>
       </div>
+      <label style="display:flex; align-items:center; justify-content:center; gap:8px; margin:12px 0 4px; font-size:.95em; cursor:pointer;">
+        <input type="checkbox" id="new-q-crowd" ${newQuestionCrowd ? 'checked' : ''} onchange="toggleNewQuestionCrowd(this.checked)">
+        <span>🗳️ שאלת רוב - התשובה הנכונה היא מה שרוב השחקנים ענו</span>
+      </label>
+      <div id="new-q-crowd-hint" class="muted" style="font-size:.85em; text-align:center; margin-bottom:8px; display:${newQuestionCrowd ? 'block' : 'none'};">
+        לא צריך לסמן תשובה נכונה. כשהזמן נגמר, התשובה שהכי הרבה שחקנים בחרו הופכת לנכונה, וכל מי שבחר אותה מקבל נקודות.
+      </div>
       <div id="new-q-choices-wrap">
         ${Array.from({ length: n }, (_, i) => `
           <div style="display:flex; align-items:center; gap:8px; margin:6px 0;">
-            <input type="radio" name="new-q-correct" value="${i}" ${i === 0 ? 'checked' : ''}>
+            <input type="radio" class="new-q-radio" name="new-q-correct" value="${i}" ${i === 0 ? 'checked' : ''} style="${newQuestionCrowd ? 'visibility:hidden;' : ''}">
             <input type="text" id="new-q-choice-${i}" placeholder="תשובה ${i + 1}" style="flex:1;">
           </div>
         `).join('')}
@@ -2738,6 +2792,13 @@ function setNewQuestionChoiceCount(n) {
   renderAdminTab();
   const newTextEl = document.getElementById('new-q-text');
   if (newTextEl) newTextEl.value = textVal;
+}
+
+function toggleNewQuestionCrowd(v) {
+  newQuestionCrowd = !!v;
+  document.querySelectorAll('.new-q-radio').forEach(el => { el.style.visibility = newQuestionCrowd ? 'hidden' : 'visible'; });
+  const hint = document.getElementById('new-q-crowd-hint');
+  if (hint) hint.style.display = newQuestionCrowd ? 'block' : 'none';
 }
 
 function applyCustomChoiceCount() {
@@ -2917,16 +2978,19 @@ function addQuestionToOpenCategory() {
   const video = document.getElementById('new-q-video').value.trim();
   const n = newQuestionChoiceCount;
   const choices = Array.from({ length: n }, (_, i) => document.getElementById('new-q-choice-' + i).value.trim());
+  const crowdEl = document.getElementById('new-q-crowd');
+  const isCrowd = crowdEl ? crowdEl.checked : false;
   const correctRadio = document.querySelector('input[name="new-q-correct"]:checked');
   const msg = document.getElementById('add-q-msg');
-  if (!text || choices.some(c => !c) || !correctRadio) {
+  if (!text || choices.some(c => !c) || (!isCrowd && !correctRadio)) {
     msg.style.display = 'block';
     msg.style.color = '#ff5757';
     msg.textContent = `❌ צריך למלא שאלה וגם את כל ${n} התשובות`;
     return;
   }
-  const correct = parseInt(correctRadio.value, 10);
+  const correct = isCrowd ? 0 : parseInt(correctRadio.value, 10);
   const newQ = { q: text, choices, correct };
+  if (isCrowd) newQ.crowd = true;
   if (image) newQ.image = image;
   if (video) newQ.video = video;
   const questions = (cat.questions || []).concat([newQ]);
@@ -2938,6 +3002,7 @@ function addQuestionToOpenCategory() {
     saveLocalCategories(local);
   }
   newQuestionImageData = null;
+  newQuestionCrowd = false;
   renderAdminTab();
   const newMsg = document.getElementById('add-q-msg');
   if (newMsg) {
@@ -3202,7 +3267,7 @@ function renderAdminTab() {
             ${q.image ? `<img src="${q.image}" style="max-width:120px; max-height:80px; border-radius:8px; display:block; margin-bottom:6px;" onerror="this.style.display='none'">` : ''}
             ${q.video ? '<div style="color:#555; font-size:.85em;">🎬 יש סרטון</div>' : ''}
             <div style="font-weight:700;">${q.q}</div>
-            <div style="color:#555; font-size:.9em;">✅ ${q.choices[q.correct]}</div>
+            <div style="color:#555; font-size:.9em;">${q.crowd ? '🗳️ שאלת רוב - הנכונה היא מה שרוב ענו' : '✅ ' + q.choices[q.correct]}</div>
             <button class="small-btn" onclick="deleteCustomQuestion(${i})">🗑️ מחק</button>
           </div>
         `).join('')}
@@ -3247,7 +3312,7 @@ function renderAdminTab() {
           ${customList.map((q, i) => `
             <div style="border-bottom:1px solid #eee; padding:8px 0;">
               <div style="font-weight:700;">${q.q}</div>
-              <div style="color:#555; font-size:.9em;">✅ ${q.choices[q.correct]}</div>
+              <div style="color:#555; font-size:.9em;">${q.crowd ? '🗳️ שאלת רוב - הנכונה היא מה שרוב ענו' : '✅ ' + q.choices[q.correct]}</div>
               <button class="small-btn" onclick="deleteCustomQuestion(${i})">🗑️ מחק</button>
             </div>
           `).join('')}
@@ -3345,7 +3410,7 @@ function renderAdminTab() {
                 <button class="small-btn" style="padding:6px 12px;" onclick="deleteQuestionFromCategory('${cat.id}','${cat.scope}',${i})">🗑️</button>
               </div>
               ${expanded ? `<div style="margin-top:6px; color:#555; font-size:.9em;">
-                ${q.choices.map((c, ci) => `<div>${ci === q.correct ? '✅' : '▫️'} ${c}</div>`).join('')}
+                ${q.crowd ? '<div>🗳️ שאלת רוב - אין תשובה נכונה מראש</div>' : ''}${q.choices.map((c, ci) => `<div>${(!q.crowd && ci === q.correct) ? '✅' : '▫️'} ${c}</div>`).join('')}
               </div>` : ''}
             </div>
           `;
@@ -3526,17 +3591,20 @@ function addCustomQuestion() {
   const video = document.getElementById('new-q-video').value.trim();
   const n = newQuestionChoiceCount;
   const choices = Array.from({ length: n }, (_, i) => document.getElementById('new-q-choice-' + i).value.trim());
+  const crowdEl = document.getElementById('new-q-crowd');
+  const isCrowd = crowdEl ? crowdEl.checked : false;
   const correctRadio = document.querySelector('input[name="new-q-correct"]:checked');
   const msg = document.getElementById('add-q-msg');
-  if (!text || choices.some(c => !c) || !correctRadio) {
+  if (!text || choices.some(c => !c) || (!isCrowd && !correctRadio)) {
     msg.style.display = 'block';
     msg.style.color = '#ff5757';
     msg.textContent = `❌ צריך למלא שאלה וגם את כל ${n} התשובות`;
     return;
   }
-  const correct = parseInt(correctRadio.value, 10);
+  const correct = isCrowd ? 0 : parseInt(correctRadio.value, 10);
   const list = getCustomQuestions();
   const newQ = { q: text, choices, correct };
+  if (isCrowd) newQ.crowd = true;
   if (image) newQ.image = image;
   if (video) newQ.video = video;
   list.push(newQ);
@@ -3549,6 +3617,7 @@ function addCustomQuestion() {
     return;
   }
   newQuestionImageData = null;
+  newQuestionCrowd = false;
   renderAdminTab();
   const newMsg = document.getElementById('add-q-msg');
   if (newMsg) {
