@@ -1255,7 +1255,7 @@ try {
 function checkJoinLinkOnLoad() {
   const params = new URLSearchParams(location.search);
   const code = params.get('room');
-  if (!code || !firebaseReady) return;
+  if (!code || !/^d{4}$/.test(code) || !firebaseReady) return;
   db.ref('rooms/' + code).once('value').then(snap => {
     if (!snap.exists()) return;
     showJoinFlow(code, snap.val());
@@ -2911,12 +2911,13 @@ function saveLocalCategories(obj) {
   localStorage.setItem(LOCAL_CATEGORIES_KEY, JSON.stringify(obj));
 }
 
+const GLOBAL_CATEGORIES_PATH = 'rooms/_categories';
 let globalCategoriesCache = {};
 let globalCategoriesListenerStarted = false;
 function initGlobalCategoriesListener() {
   if (!firebaseReady || globalCategoriesListenerStarted) return;
   globalCategoriesListenerStarted = true;
-  db.ref('categories').on('value', snap => {
+  db.ref(GLOBAL_CATEGORIES_PATH).on('value', snap => {
     globalCategoriesCache = snap.val() || {};
     if (adminTab === 'categories') renderAdminTab();
   });
@@ -2945,7 +2946,8 @@ function createCategory(name, scope) {
   const id = 'cat_' + Date.now().toString(36) + Math.random().toString(36).slice(2, 6);
   if (scope === 'global') {
     if (!firebaseReady) { alert('אין חיבור אונליין - אי אפשר ליצור קטגוריה שכולם רואים'); return; }
-    db.ref('categories/' + id).set({ name, questions: [] });
+    db.ref(GLOBAL_CATEGORIES_PATH + '/' + id).set({ name, questions: [] })
+      .catch(e => alert('הקטגוריה לא נשמרה לכולם: ' + e.message));
   } else {
     const local = getLocalCategories();
     local[id] = { name, questions: [] };
@@ -2958,7 +2960,8 @@ function createCategory(name, scope) {
 function deleteCategory(id, scope) {
   if (!confirm('למחוק את הקטגוריה הזו וכל השאלות שבה?')) return;
   if (scope === 'global') {
-    db.ref('categories/' + id).remove();
+    db.ref(GLOBAL_CATEGORIES_PATH + '/' + id).remove()
+      .catch(e => alert('לא הצלחתי למחוק את הקטגוריה: ' + e.message));
   } else {
     const local = getLocalCategories();
     delete local[id];
@@ -2994,7 +2997,8 @@ function addQuestionToOpenCategory() {
   if (video) newQ.video = video;
   const questions = (cat.questions || []).concat([newQ]);
   if (cat.scope === 'global') {
-    db.ref('categories/' + cat.id + '/questions').set(questions);
+    db.ref(GLOBAL_CATEGORIES_PATH + '/' + cat.id + '/questions').set(questions)
+      .catch(e => alert('השאלה לא נשמרה לכולם: ' + e.message));
   } else {
     const local = getLocalCategories();
     local[cat.id].questions = questions;
@@ -3017,7 +3021,8 @@ function deleteQuestionFromCategory(catId, scope, qIndex) {
   const questions = (cat.questions || []).slice();
   questions.splice(qIndex, 1);
   if (scope === 'global') {
-    db.ref('categories/' + catId + '/questions').set(questions);
+    db.ref(GLOBAL_CATEGORIES_PATH + '/' + catId + '/questions').set(questions)
+      .catch(e => alert('לא הצלחתי למחוק את השאלה: ' + e.message));
   } else {
     const local = getLocalCategories();
     local[catId].questions = questions;
