@@ -2736,9 +2736,11 @@ function clearQuestionImageFile() {
 function renderAddQuestionFormHtml(saveFn) {
   saveFn = saveFn || 'addCustomQuestion';
   const n = newQuestionChoiceCount;
+  const editing = !!editingQuestion;
   return `
     <div class="card">
-      <p style="color:#555;">כתוב שאלה, ובחר כמה תשובות אפשריות ואיזו נכונה:</p>
+      ${editing ? '<div style="background:#fff4d6; border-radius:10px; padding:10px; margin-bottom:10px; font-weight:700;">✏️ אתה עורך שאלה שכבר קיימת</div>' : ''}
+      <p style="color:#555;">${editing ? 'שנה מה שתרצה ולחץ שמור שינויים:' : 'כתוב שאלה, ובחר כמה תשובות אפשריות ואיזו נכונה:'}</p>
       <input type="text" id="new-q-text" placeholder="השאלה שלך" style="max-width:100%;">
       <p style="color:#555; margin-top:12px;">תמונה לשאלה (רשות - אפשר להשאיר ריק):</p>
       ${renderQuestionImagePickerHtml()}
@@ -2765,7 +2767,8 @@ function renderAddQuestionFormHtml(saveFn) {
           </div>
         `).join('')}
       </div>
-      <button class="big-btn green" onclick="${saveFn}()">💾 שמור שאלה</button>
+      <button class="big-btn green" onclick="${editing ? 'saveEditedQuestion' : saveFn}()">${editing ? '💾 שמור שינויים' : '💾 שמור שאלה'}</button>
+      ${editing ? '<button class="small-btn" onclick="cancelEditQuestion()">❌ בטל עריכה</button>' : ''}
       <div id="add-q-msg" class="feedback-banner" style="font-size:1em; display:none;"></div>
     </div>
   `;
@@ -2785,6 +2788,7 @@ function renderNewQuestionCountOptions() {
 }
 
 let newQuestionChoiceStash = [];
+let editingQuestion = null; // {source:'custom',index} או {source:'category',catId,scope,index}
 
 function readNewQuestionDraft() {
   const val = id => { const el = document.getElementById(id); return el ? el.value : ''; };
@@ -2804,6 +2808,127 @@ function readNewQuestionDraft() {
 
 function resetNewQuestionChoiceStash() {
   newQuestionChoiceStash = [];
+}
+
+/* ===================== עריכת שאלה שכבר נכתבה ===================== */
+function closeOpenCategory() {
+  editingQuestion = null;
+  openCategoryId = null;
+  renderAdminTab();
+}
+
+function startEditQuestion(target, q) {
+  editingQuestion = target;
+  const choices = (q.choices || []).slice();
+  newQuestionChoiceCount = choices.length || 4;
+  newQuestionCrowd = !!q.crowd;
+  const isUpload = !!q.image && String(q.image).slice(0, 5) === 'data:';
+  newQuestionImageData = isUpload ? q.image : null;
+  newQuestionChoiceStash = choices;
+  const draft = {
+    text: q.q || '',
+    image: (q.image && !isUpload) ? q.image : '',
+    video: q.video || '',
+    choices: choices,
+    correct: typeof q.correct === 'number' ? q.correct : 0
+  };
+  if (target.source === 'custom' && adminTab !== 'add' && adminTab !== 'builtin') {
+    adminTab = 'add';
+    renderAdminPanel();
+  } else {
+    renderAdminTab();
+  }
+  restoreNewQuestionDraft(draft);
+  const el = document.getElementById('new-q-text');
+  if (el) el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+}
+
+function editCustomQuestion(i) {
+  const q = getCustomQuestions()[i];
+  if (!q) return;
+  startEditQuestion({ source: 'custom', index: i }, q);
+}
+
+function editCategoryQuestion(catId, scope, i) {
+  const cat = getCategoryById(catId);
+  const q = cat && (cat.questions || [])[i];
+  if (!q) return;
+  startEditQuestion({ source: 'category', catId: catId, scope: scope, index: i }, q);
+}
+
+function cancelEditQuestion() {
+  editingQuestion = null;
+  newQuestionImageData = null;
+  newQuestionCrowd = false;
+  resetNewQuestionChoiceStash();
+  renderAdminTab();
+}
+
+function showAddQuestionMsg(text, color) {
+  const msg = document.getElementById('add-q-msg');
+  if (!msg) return;
+  msg.style.display = 'block';
+  msg.style.color = color;
+  msg.textContent = text;
+}
+
+function collectQuestionFromForm() {
+  const text = document.getElementById('new-q-text').value.trim();
+  const imageUrl = document.getElementById('new-q-image').value.trim();
+  const image = newQuestionImageData || imageUrl;
+  const video = document.getElementById('new-q-video').value.trim();
+  const n = newQuestionChoiceCount;
+  const choices = Array.from({ length: n }, (_, i) => document.getElementById('new-q-choice-' + i).value.trim());
+  const crowdEl = document.getElementById('new-q-crowd');
+  const isCrowd = crowdEl ? crowdEl.checked : false;
+  const correctRadio = document.querySelector('input[name="new-q-correct"]:checked');
+  if (!text || choices.some(c => !c) || (!isCrowd && !correctRadio)) {
+    showAddQuestionMsg('❌ צריך למלא שאלה וגם את כל התשובות', '#ff5757');
+    return null;
+  }
+  const out = { q: text, choices: choices, correct: isCrowd ? 0 : parseInt(correctRadio.value, 10) };
+  if (isCrowd) out.crowd = true;
+  if (image) out.image = image;
+  if (video) out.video = video;
+  return out;
+}
+
+function saveEditedQuestion() {
+  const target = editingQuestion;
+  if (!target) return;
+  const q = collectQuestionFromForm();
+  if (!q) return;
+  if (target.source === 'custom') {
+    const list = getCustomQuestions();
+    if (!list[target.index]) { cancelEditQuestion(); return; }
+    list[target.index] = q;
+    try {
+      saveCustomQuestions(list);
+    } catch (e) {
+      showAddQuestionMsg('❌ אין מספיק מקום לשמור - נסו תמונה קטנה יותר', '#ff5757');
+      return;
+    }
+  } else {
+    const cat = getCategoryById(target.catId);
+    if (!cat || !(cat.questions || [])[target.index]) { cancelEditQuestion(); return; }
+    const questions = cat.questions.slice();
+    questions[target.index] = q;
+    if (target.scope === 'global') {
+      db.ref(GLOBAL_CATEGORIES_PATH + '/' + cat.id + '/questions').set(questions)
+        .catch(e => alert('השינוי לא נשמר לכולם: ' + e.message));
+    } else {
+      const local = getLocalCategories();
+      if (!local[cat.id]) { cancelEditQuestion(); return; }
+      local[cat.id].questions = questions;
+      saveLocalCategories(local);
+    }
+  }
+  editingQuestion = null;
+  newQuestionImageData = null;
+  newQuestionCrowd = false;
+  resetNewQuestionChoiceStash();
+  renderAdminTab();
+  showAddQuestionMsg('✅ השינוי נשמר!', '#38c172');
 }
 
 function restoreNewQuestionDraft(d) {
@@ -3196,7 +3321,7 @@ function openAdminPanel() {
 const ADMIN_NAV = [
   { group: 'ניהול שאלות', items: [
     { id: 'add',        label: 'הוספת שאלה',          sub: 'שאלה חדשה עם תשובות, תמונה או סרטון' },
-    { id: 'list',       label: 'השאלות שלי',           sub: 'כל השאלות שהוספת, עם אפשרות למחיקה' },
+    { id: 'list',       label: 'השאלות שלי',           sub: 'כל השאלות שהוספת, אפשר לערוך או למחוק' },
     { id: 'builtin',    label: 'שאלות המערכת',         sub: 'מצאי השאלות הכלליות - סימון מה פעיל' },
     { id: 'haredi',     label: 'יהדות',                sub: 'מצאי שאלות תורה, חגים, הלכה וגדולי ישראל' },
     { id: 'geo',        label: 'גיאוגרפיה של ישראל',   sub: 'מצאי שאלות ערים, הרים, ימים ונהרות' },
@@ -3264,7 +3389,7 @@ function renderAdminPanel() {
   renderAdminTab();
 }
 
-function setAdminTab(tab) { adminTab = tab; renderAdminPanel(); }
+function setAdminTab(tab) { editingQuestion = null; adminTab = tab; renderAdminPanel(); }
 
 function renderAdminTab() {
   const el = document.getElementById('admin-tab-content');
@@ -3304,6 +3429,7 @@ function renderAdminTab() {
             ${q.video ? '<div style="color:#555; font-size:.85em;">🎬 יש סרטון</div>' : ''}
             <div style="font-weight:700;">${q.q}</div>
             <div style="color:#555; font-size:.9em;">${q.crowd ? '🗳️ שאלת רוב - הנכונה היא מה שרוב ענו' : '✅ ' + q.choices[q.correct]}</div>
+            <button class="small-btn" onclick="editCustomQuestion(${i})">✏️ ערוך</button>
             <button class="small-btn" onclick="deleteCustomQuestion(${i})">🗑️ מחק</button>
           </div>
         `).join('')}
@@ -3349,7 +3475,8 @@ function renderAdminTab() {
             <div style="border-bottom:1px solid #eee; padding:8px 0;">
               <div style="font-weight:700;">${q.q}</div>
               <div style="color:#555; font-size:.9em;">${q.crowd ? '🗳️ שאלת רוב - הנכונה היא מה שרוב ענו' : '✅ ' + q.choices[q.correct]}</div>
-              <button class="small-btn" onclick="deleteCustomQuestion(${i})">🗑️ מחק</button>
+              <button class="small-btn" onclick="editCustomQuestion(${i})">✏️ ערוך</button>
+            <button class="small-btn" onclick="deleteCustomQuestion(${i})">🗑️ מחק</button>
             </div>
           `).join('')}
         </div>
@@ -3427,7 +3554,7 @@ function renderAdminTab() {
         return;
       }
       el.innerHTML = `
-        <button class="small-btn" onclick="openCategoryId=null; renderAdminTab();">⬅️ כל הקטגוריות</button>
+        <button class="small-btn" onclick="closeOpenCategory()">⬅️ כל הקטגוריות</button>
         <div class="card">
           <div style="font-weight:800; font-size:1.1em;">${cat.scope === 'global' ? '🌐' : '💻'} ${cat.name}</div>
           <div class="muted" style="font-size:.85em;">${cat.scope === 'global' ? 'קטגוריה גלובלית - כולם רואים אותה בכל מחשב' : 'קטגוריה מקומית - רק במחשב הזה'}</div>
@@ -3443,6 +3570,7 @@ function renderAdminTab() {
             <div style="border-bottom:1px solid #eee; padding:10px 0;">
               <div style="display:flex; align-items:center; gap:8px;">
                 <span style="flex:1; font-weight:700; cursor:pointer;" onclick="toggleQuestionExpand('${key}')">${q.q}</span>
+                <button class="small-btn" style="padding:6px 12px;" onclick="editCategoryQuestion('${cat.id}','${cat.scope}',${i})">✏️</button>
                 <button class="small-btn" style="padding:6px 12px;" onclick="deleteQuestionFromCategory('${cat.id}','${cat.scope}',${i})">🗑️</button>
               </div>
               ${expanded ? `<div style="margin-top:6px; color:#555; font-size:.9em;">
