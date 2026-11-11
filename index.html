@@ -3065,6 +3065,9 @@ function applyCustomChoiceCount() {
 }
 
 const ADMIN_PIN_KEY = 'trivia_admin_pin';
+/* ===== הקוד הסודי כבוי כרגע לפי בקשת שמואל.
+       כדי להחזיר את הקוד: לשנות כאן false ל-true. זה כל מה שצריך. ===== */
+const ADMIN_PIN_REQUIRED = false;
 if (!localStorage.getItem(ADMIN_PIN_KEY)) {
   localStorage.setItem(ADMIN_PIN_KEY, '34613');
 }
@@ -3360,6 +3363,7 @@ function goAdmin() {
 }
 
 function showPinLockScreen() {
+  if (!ADMIN_PIN_REQUIRED) { afterPinSuccess(); return; }
   showScreen('admin-lock-screen');
   const savedPin = localStorage.getItem(ADMIN_PIN_KEY);
   const content = document.getElementById('admin-lock-content');
@@ -3775,6 +3779,7 @@ function renderAdminTab() {
   } else if (adminTab === 'pin') {
     el.innerHTML = `
       <div class="card center-text">
+        ${ADMIN_PIN_REQUIRED ? '' : '<div style="background:#fff4d6; border-radius:10px; padding:10px; margin-bottom:10px; font-weight:700;">⚠️ כרגע הקוד כבוי - כל אחד נכנס לניהול בלי להקליד כלום</div>'}
         <p style="color:#555;">בחר/י קוד סודי חדש בן 5 ספרות:</p>
         <input type="text" id="change-pin-input" maxlength="5" inputmode="numeric" placeholder="12345">
         <br><button class="big-btn green" onclick="changeAdminPin()">💾 שמור קוד חדש</button>
