@@ -1255,7 +1255,7 @@ try {
 function checkJoinLinkOnLoad() {
   const params = new URLSearchParams(location.search);
   const code = params.get('room');
-  if (!code || !/^d{4}$/.test(code) || !firebaseReady) return;
+  if (!code || !/^\d{4}$/.test(code) || !firebaseReady) return;
   db.ref('rooms/' + code).once('value').then(snap => {
     if (!snap.exists()) return;
     showJoinFlow(code, snap.val());
@@ -4663,6 +4663,75 @@ function planSetCount(n) {
 
 /* ---------- גוף השלבים ---------- */
 
+/* ---------- תצוגה מקדימה: לראות את כל המשחק לפני שיוצרים אותו ---------- */
+let planPreviewOpen = false;
+
+function planTogglePreview() {
+  planPreviewOpen = !planPreviewOpen;
+  renderPlanWizard();
+}
+
+function planPreviewHtml() {
+  const btn = '<div class="plan-nav" style="margin-bottom:12px;">' +
+    '<button class="plan-btn primary" onclick="planTogglePreview()">' +
+    (planPreviewOpen ? '🔼 סגור את התצוגה' : '👀 ראה את כל המשחק לפני היצירה') +
+    '</button></div>';
+  if (!planPreviewOpen) return btn;
+
+  const fullBank = planBankFor('all');
+  let qNum = 0;
+  let reals = 0, polls = 0, slides = 0, randoms = 0;
+  let h = '<div class="plan-slots" style="margin-bottom:10px;">';
+
+  planDraft.items.forEach(item => {
+    if (item.kind === 'slide') {
+      if (!item.title && !item.text && !item.image && !item.video) return;
+      slides++;
+      h += '<div class="plan-slot slide"><div style="padding:10px 12px;">' +
+        '<b>🖼️ שקופית מעבר</b>' +
+        (item.title ? '<div style="font-size:1.1em; margin-top:4px;">' + planEscText(item.title) + '</div>' : '') +
+        (item.text ? '<div class="muted">' + planEscText(item.text) + '</div>' : '') +
+        (item.image ? '<div class="muted">🖼️ יש תמונה</div>' : '') +
+        (item.video ? '<div class="muted">🎬 יש סרטון</div>' : '') +
+        '</div></div>';
+      return;
+    }
+    qNum++;
+    if (!item.text) {
+      randoms++;
+      h += '<div class="plan-slot"><div style="padding:10px 12px;"><b>' + qNum + '.</b> ' +
+        '<span class="muted">🎲 שאלה אקראית - תיבחר ברגע שניצור את המשחק</span></div></div>';
+      return;
+    }
+    const b = fullBank.find(q => q.q === item.text);
+    const crowd = !!(b && b.crowd);
+    if (crowd) polls++; else reals++;
+    h += '<div class="plan-slot filled"><div style="padding:10px 12px;">';
+    h += '<b>' + qNum + '. ' + planEscText(item.text) + '</b>';
+    if (item.sample) h += ' 🎯';
+    if (crowd) h += ' <span class="muted">📊 סקר - התשובה היא מה שהרוב יבחר</span>';
+    if (b && b.choices) {
+      h += '<div style="margin-top:6px; line-height:1.7;">' + b.choices.map((c, ci) =>
+        '<div>' + (crowd ? '▫️' : (ci === b.correct ? '✅' : '◻️')) + ' ' + planEscText(c) + '</div>'
+      ).join('') + '</div>';
+    } else {
+      h += '<div class="muted">⚠️ לא מצאתי את השאלה בבנק</div>';
+    }
+    h += '</div></div>';
+  });
+  h += '</div>';
+
+  const head = '<div class="plan-sum" style="margin-bottom:10px;">' +
+    '<div class="plan-sum-row"><b>שאלות עם תשובה נכונה</b><span>' + reals + '</span></div>' +
+    '<div class="plan-sum-row"><b>סקרים (שאלות רוב)</b><span>' + polls + '</span></div>' +
+    '<div class="plan-sum-row"><b>שקופיות מעבר</b><span>' + slides + '</span></div>' +
+    (randoms ? '<div class="plan-sum-row"><b>שאלות אקראיות</b><span>' + randoms + '</span></div>' : '') +
+    '</div>' +
+    '<p class="plan-hint">✅ = התשובה הנכונה. במשחק עצמו סדר התשובות מתערבב, אז זה לא יהיה באותו סדר.</p>';
+
+  return btn + head + h;
+}
+
 function planStepBodyHtml() {
   const d = planDraft;
   if (planStep === 0) {
@@ -4699,7 +4768,7 @@ function planStepBodyHtml() {
   const chosen = qItems.filter(s => s.text).length;
   const samples = qItems.filter(s => s.text && s.sample).length;
   const slides = d.items.filter(it => it.kind === 'slide').length;
-  let h = '<div class="plan-sum">';
+  let h = planPreviewHtml() + '<div class="plan-sum">';
   h += '<div class="plan-sum-row"><b>שם המשחק</b><span>' + planEscText(d.name || 'קרב מוחות') + '</span></div>';
   h += '<div class="plan-sum-row"><b>כמה שאלות</b><span>' + d.count + '</span></div>';
   h += '<div class="plan-sum-row"><b>שאלות שבחרת</b><span>' + chosen + ' (השאר אקראי מתוך ' + planSourceLabel(d.source) + ')</span></div>';
