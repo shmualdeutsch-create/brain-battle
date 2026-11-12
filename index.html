@@ -4666,6 +4666,14 @@ function planSetCount(n) {
 /* ---------- תצוגה מקדימה: לראות את כל המשחק לפני שיוצרים אותו ---------- */
 let planPreviewOpen = false;
 
+// אותה שאלה יכולה להופיע בשתי קטגוריות. קודם מחפשים בנושא שנבחר, ורק אחר כך בכל הבנק.
+function planFindBankItem(text, srcBank, fullBank) {
+  if (!text) return null;
+  const src = srcBank || planBankFor(planDraft.source);
+  const all = fullBank || planBankFor('all');
+  return src.find(q => q.q === text) || all.find(q => q.q === text) || null;
+}
+
 function planTogglePreview() {
   planPreviewOpen = !planPreviewOpen;
   renderPlanWizard();
@@ -4679,6 +4687,7 @@ function planPreviewHtml() {
   if (!planPreviewOpen) return btn;
 
   const fullBank = planBankFor('all');
+  const srcBank = planBankFor(planDraft.source);
   let qNum = 0;
   let reals = 0, polls = 0, slides = 0, randoms = 0;
   let h = '<div class="plan-slots" style="margin-bottom:10px;">';
@@ -4703,7 +4712,7 @@ function planPreviewHtml() {
         '<span class="muted">🎲 שאלה אקראית - תיבחר ברגע שניצור את המשחק</span></div></div>';
       return;
     }
-    const b = fullBank.find(q => q.q === item.text);
+    const b = planFindBankItem(item.text, srcBank, fullBank);
     const crowd = !!(b && b.crowd);
     if (crowd) polls++; else reals++;
     h += '<div class="plan-slot filled"><div style="padding:10px 12px;">';
@@ -4847,7 +4856,7 @@ function planCreateGame() {
       return;
     }
     let item = null;
-    if (slot.text) item = fullBank.find(q => q.q === slot.text);
+    if (slot.text) item = planFindBankItem(slot.text, bank, fullBank);
     if (!item) { item = pool[p]; p++; }
     if (!item) return;
     const inst = buildQuestionInstance(item);
