@@ -2427,7 +2427,7 @@ function renderHostPlayerCardHtml() {
 
 /* ============ התקדמות שלב אחרי שלב עם חיצי המקלדת ============ */
 function arrowKeysHintHtml() {
-  return '<div class="muted center-text" style="font-size:.85em; margin-top:8px;">⌨️ חץ שמאלה = השלב הבא · חץ ימינה = שאלה קודמת</div>';
+  return '<div class="muted center-text" style="font-size:.85em; margin-top:8px;">⌨️ חץ שמאלה = השלב הבא · חץ ימינה = שלב אחורה</div>';
 }
 
 function hostAdvanceStep() {
@@ -2452,7 +2452,15 @@ function hostBackStep() {
   if (!hostRoomState) return;
   const idx = hostRoomState.questionIndex;
   const phase = hostRoomState.phase;
-  if (idx > 0 && (phase === 'question' || phase === 'reveal' || phase === 'slide' || phase === 'video')) {
+  // שלב אחד אחורה, בדיוק ההפך מהחץ קדימה
+  if (phase === 'finished') {
+    hostGoToQuestion(Math.max(0, hostQuestions.length - 1));
+  } else if (phase === 'reveal') {
+    hostGoToQuestion(idx);            // חזרה לשאלה עצמה
+  } else if (phase === 'question') {
+    if (hostRoomState.questionStarted) hostGoToQuestion(idx);   // עוצר את השעון וחוזר להתחלה
+    else if (idx > 0) hostGoToQuestion(idx - 1);
+  } else if ((phase === 'slide' || phase === 'video') && idx > 0) {
     hostGoToQuestion(idx - 1);
   }
 }
@@ -2728,6 +2736,18 @@ function renderPlayerReveal(content) {
     const cq = playerRoomState.currentQuestion || {};
     const isCrowd = !!cq.crowd;
     const correctText = (cq.choices && cq.choices[cq.correctIndex]) || "";
+    const allAnswers = (playerRoomState.answers || {})[idx] || {};
+    const totalAnswered = Object.keys(allAnswers).length;
+    const choices = cq.choices || [];
+    const tally = choices.map(() => 0);
+    Object.keys(allAnswers).forEach(pid => {
+      const ci = allAnswers[pid].choiceIndex;
+      if (ci >= 0 && ci < tally.length) tally[ci]++;
+    });
+    const pctOf = (count) => totalAnswered ? Math.round(count * 100 / totalAnswered) : 0;
+    const crowdWinners = cq.crowdWinners || [];
+    const isWinChoice = (i) => isCrowd ? crowdWinners.indexOf(i) >= 0 : i === cq.correctIndex;
+    const myChoice = a && typeof a.choiceIndex === 'number' ? a.choiceIndex : -1;
     let banner = '⏳';
     if (a) {
       if (isSample) {
@@ -2745,6 +2765,19 @@ function renderPlayerReveal(content) {
     content.innerHTML = `
       <div class="feedback-banner">${banner}</div>
       ${correctText ? `<div class="card center-text"><div class="muted" style="font-size:.8em;">${isCrowd ? '🗳️ התשובה של הרוב' : 'התשובה הנכונה'}</div><div style="font-size:1.15em; font-weight:800; color:var(--good);">${correctText}</div></div>` : ""}
+      ${choices.length ? `<div class="card">
+        <div style="font-weight:700; margin-bottom:8px;">📊 מה כולם ענו (${totalAnswered} ענו):</div>
+        ${choices.map((c, i) => `
+          <div style="margin:8px 0;">
+            <div style="display:flex; justify-content:space-between; gap:8px; font-size:.95em; font-weight:700; margin-bottom:3px;">
+              <span>${isWinChoice(i) ? '✅ ' : ''}${c}${i === myChoice ? ' — זו התשובה שלך' : ''}</span>
+              <span style="white-space:nowrap;">${tally[i]} · ${pctOf(tally[i])}%</span>
+            </div>
+            <div style="background:#e9edf5; border-radius:6px; height:10px; overflow:hidden;">
+              <div style="width:${pctOf(tally[i])}%; height:100%; background:${isWinChoice(i) ? 'var(--good)' : '#9aa6bf'};"></div>
+            </div>
+          </div>`).join('')}
+      </div>` : ''}
       <div class="card center-text">
         <div style="font-size:1.3em; font-weight:700;">הניקוד שלך: ${myScore}</div>
         <div class="muted">מקום ${myRank || '-'} מתוך ${sorted.length}</div>
