@@ -2331,11 +2331,12 @@ function renderHostReveal(content) {
 
   content.innerHTML = `
     <div class="progress-label center-text">${isCrowd ? '🗳️ מה שרוב השחקנים ענו:' : 'התשובה הנכונה:'}</div>
+    <div class="muted center-text" style="font-size:.9em;">סה״כ ענו בשאלה הזו: ${totalAnswered}</div>
     <div class="choices-grid" style="grid-template-columns: repeat(${gridColsFor(q.choices.length)}, 1fr);">
       ${q.choices.map((c, i) => {
         const win = isWinningChoice(i);
-        const style = 'cursor:default;' + (isCrowd ? ' flex-direction:column; gap:4px;' + (win ? ' font-size:1.4em;' : '') : '');
-        const stat = isCrowd ? `<div style="font-size:.6em; font-weight:800; opacity:.95;">${tally[i]} ענו · ${pctOf(tally[i])}%</div>` : '';
+        const style = 'cursor:default; flex-direction:column; gap:4px;' + (isCrowd && win ? ' font-size:1.4em;' : '');
+        const stat = `<div style="font-size:.6em; font-weight:800; opacity:.95;">${tally[i]} ענו · ${pctOf(tally[i])}%</div>`;
         const label = (isCrowd && win) ? '<div style="font-size:.5em; font-weight:700; opacity:.9;">הכי הרבה בחרו בזה</div>' : '';
         return `<div class="choice-btn choice-${i} ${win ? 'correct-answer' : ''}" style="${style}">${c}${stat}${label}</div>`;
       }).join('')}
