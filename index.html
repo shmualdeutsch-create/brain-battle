@@ -2213,6 +2213,95 @@ function renderHostMgmtEditHtml() {
   }
   return h;
 }
+/* ---------- מי נבחר הכי הרבה: סיכום לפי שם, למנחה ---------- */
+let hostVotesOpen = false;
+let hostVotesOpenName = null;
+let hostVotesSorted = [];
+
+function hostEsc(x) {
+  return String(x == null ? '' : x).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+}
+
+function toggleHostVotes() {
+  hostVotesOpen = !hostVotesOpen;
+  hostVotesOpenName = null;
+  renderHost();
+}
+
+function toggleHostVotesName(i) {
+  const name = hostVotesSorted[i] ? hostVotesSorted[i].name : null;
+  hostVotesOpenName = (hostVotesOpenName === name) ? null : name;
+  renderHost();
+}
+
+// לכל שם שמופיע כתשובה: כמה הצביעו לו, בכמה שאלות הוא מופיע, ובאילו
+function hostNameStats() {
+  const answers = (hostRoomState && hostRoomState.answers) || {};
+  const map = {};
+  (hostQuestions || []).forEach((q, i) => {
+    if (!q || !q.choices) return;
+    const given = answers[i] || {};
+    const counts = {};
+    let totalVotes = 0;
+    Object.keys(given).forEach(pid => {
+      const ci = given[pid] && given[pid].choiceIndex;
+      if (typeof ci === 'number' && ci >= 0 && q.choices[ci] != null) {
+        counts[ci] = (counts[ci] || 0) + 1;
+        totalVotes++;
+      }
+    });
+    q.choices.forEach((name, ci) => {
+      if (!map[name]) map[name] = { name: name, votes: 0, qs: [] };
+      const v = counts[ci] || 0;
+      map[name].votes += v;
+      map[name].qs.push({
+        idx: i,
+        num: q.qNum || (i + 1),
+        text: q.text || '',
+        crowd: !!q.crowd,
+        votes: v,
+        total: totalVotes
+      });
+    });
+  });
+  return Object.keys(map).map(k => map[k]).sort((a, b) =>
+    (b.votes - a.votes) || (b.qs.length - a.qs.length) || a.name.localeCompare(b.name, 'he'));
+}
+
+function renderHostVotesHtml() {
+  if (!hostRoomState) return '';
+  const toggle = `<div class="center-text" style="margin-top:12px; margin-bottom:${hostVotesOpen ? '10px' : '0'};">
+      <button class="small-btn" onclick="toggleHostVotes()">${hostVotesOpen ? '🔽 סגור סיכום שמות' : '👥 מי נבחר הכי הרבה'}</button>
+    </div>`;
+  if (!hostVotesOpen) return toggle;
+  hostVotesSorted = hostNameStats();
+  if (!hostVotesSorted.length) return toggle + '<div class="card"><div class="muted">אין עדיין נתונים</div></div>';
+  const rows = hostVotesSorted.map((row, i) => {
+    const open = hostVotesOpenName === row.name;
+    const head = `<button class="plan-slot-head" style="width:100%;" onclick="toggleHostVotesName(${i})">
+        <span class="plan-slot-num">${row.votes}</span>
+        <span class="plan-slot-txt">${hostEsc(row.name)} · ב-${row.qs.length} שאלות</span>
+        <span class="plan-slot-arrow">${open ? '▲' : '▼'}</span>
+      </button>`;
+    if (!open) return `<div class="plan-slot">${head}</div>`;
+    const list = row.qs.map(q => `<tr>
+        <td>${q.crowd ? '📊' : ''}${q.num}</td>
+        <td>${hostEsc(q.text)}</td>
+        <td>${q.total ? q.votes + ' מתוך ' + q.total : '—'}</td>
+      </tr>`).join('');
+    return `<div class="plan-slot open">${head}
+      <table class="leaderboard" style="margin-top:6px;">
+        <tr><th>#</th><th>השאלה</th><th>כמה בחרו בו</th></tr>
+        ${list}
+      </table></div>`;
+  }).join('');
+  return toggle + `<div class="card">
+      <div style="font-weight:800; margin-bottom:4px;">👥 מי נבחר הכי הרבה</div>
+      <div class="muted" style="font-size:.85em; margin-bottom:8px;">המספר העגול = כמה פעמים בסך הכל בחרו בשם הזה. לחצו על שם כדי לראות באילו שאלות.</div>
+      <div class="plan-slots">${rows}</div>
+    </div>`;
+}
+
 function renderHostMgmtPanelHtml() {
   if (!hostMgmtOpen || !hostRoomState) return '';
   const idx = hostRoomState.questionIndex;
@@ -2226,6 +2315,7 @@ function renderHostMgmtPanelHtml() {
       <div style="margin-bottom:10px;">
         ${sortedWithIds.map((row, i) => `<div style="display:flex; align-items:center; gap:8px; padding:3px 0;"><span style="flex:1;">${i + 1}. ${row.p.name} - ${row.p.score || 0}</span><button class="small-btn" style="padding:4px 10px; margin:0;" onclick="hostShowPlayer('${row.pid}')">👤</button></div>`).join('') || '<div class="muted">אין עדיין תוצאות</div>'}
       </div>
+      ${renderHostVotesHtml()}
       ${hostRoomState.phase === 'reveal' ? '' : renderHostPlayerCardHtml()}
       <div class="center-text" style="margin-bottom:14px;">
         ${(hostRoomState.phase === 'reveal' || hostRoomState.phase === 'lobby')
@@ -2493,6 +2583,7 @@ function renderHostFinal(content) {
       <tr><th>מקום</th><th>שם</th><th>ניקוד</th></tr>
       ${sorted.map((p, i) => `<tr><td>${medals[i] || (i + 1)}</td><td>${p.name}</td><td>${p.score || 0}</td></tr>`).join('')}
     </table>
+    ${renderHostVotesHtml()}
     <div id="host-time-table-wrap" class="card"><p style="color:#555;">טוען טבלת זמנים...</p></div>
     <button class="big-btn green" onclick="leaveHostRoom(); goHostSetup();">🔁 משחק חדש</button>
   `;
@@ -4285,10 +4376,17 @@ function planInsertHtml(pos) {
 }
 
 function planItemsHtml() {
-  let h = '<div class="plan-opts" style="margin-bottom:14px;">' +
+  let h = '<label class="plan-label">מאיפה לוקחים את השאלות?</label><div class="plan-opts" style="margin-bottom:10px;">';
+  planSourceOptions().forEach(([val, label]) => {
+    h += '<button class="plan-opt' + (planDraft.source === val ? ' selected' : '') + '" onclick="planSetPickerSource(&quot;' + val + '&quot;)">' + label + '</button>';
+  });
+  h += '</div>';
+  h += '<div class="plan-opts" style="margin-bottom:6px;">' +
+    '<button class="plan-opt" onclick="planArrangeByParts()">🪄 סדר לי הכל לפי חלקים</button>' +
     '<button class="plan-opt" onclick="planFillRandom()">🎲 מלא את מה שחסר באקראי</button>' +
     '<button class="plan-opt" onclick="planClearAll()">🗑️ נקה את השאלות</button>' +
     '</div>';
+  h += '<p class="plan-hint" style="margin-bottom:14px;">🪄 לוקח את כל השאלות מהנושא שבחרת: קודם השאלות עם תשובה נכונה, אחר כך שקופית "נגמר חלק ראשון", ואז כל הסקרים.</p>';
   h += '<div class="plan-slots">';
   let qNum = 0;
   planDraft.items.forEach((item, i) => {
@@ -4453,6 +4551,26 @@ function planChoose(i, text) {
 function planToggleSample(i, val) {
   planDraft.items[i].sample = val;
   savePlanDraft();
+}
+
+// סידור אוטומטי: חלק ראשון = שאלות עם תשובה, שקופית מעבר, חלק שני = סקרים (שאלות רוב)
+function planArrangeByParts() {
+  const bank = planBankFor(planDraft.source);
+  if (!bank.length) { alert('אין שאלות בנושא שבחרת למעלה'); return; }
+  const real = bank.filter(q => !q.crowd);
+  const polls = bank.filter(q => q.crowd);
+  const mk = q => ({ kind: 'q', text: q.q, sample: false, duration: null });
+  const items = real.map(mk);
+  if (real.length && polls.length) {
+    items.push({ kind: 'slide', title: 'נגמר חלק ראשון! 🎉', text: 'חלק שני: סקרים', image: null, video: '' });
+  }
+  polls.forEach(q => items.push(mk(q)));
+  planDraft.count = real.length + polls.length;
+  planDraft.items = items;
+  savePlanDraft();
+  planOpenSlot = -1;
+  renderPlanWizard();
+  alert('סידרתי! חלק ראשון: ' + real.length + ' שאלות עם תשובה. חלק שני: ' + polls.length + ' סקרים.');
 }
 
 function planFillRandom() {
